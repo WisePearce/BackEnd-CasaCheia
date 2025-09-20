@@ -12,5 +12,9 @@ app.use(helmet())
 app.use(cors())
 app.use('/api', auth)
 
+app.get('/', (req, res) => {
+    res.json({message: "tudo ok"})
+})
+
 
 export default app

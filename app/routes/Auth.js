@@ -1,7 +1,8 @@
-import express from "express"
+import { Router} from "express"
+import create from "../controllers/Auth.js"
 
-const route = express.Router()
+const route = Router()
 
-const auth = route('/sigin')
+const auth = route.post('/sigin', create)
 
 export default auth

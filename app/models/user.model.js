@@ -1,4 +1,4 @@
-import { required } from "joi";
+import Joi from "joi";
 import bcrypt from "bcrypt"
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
