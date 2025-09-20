@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
         maxlength: 50
     },
     email: {
-        tyepe: String,
+        type: String,
         required: true,
         unique: true,
         lowercase: true,
@@ -55,4 +55,4 @@ userSchema.methods.generateJWT = function() {
     )
 }
 
-export default userSchema
+export default mongoose.model("User", userSchema)
