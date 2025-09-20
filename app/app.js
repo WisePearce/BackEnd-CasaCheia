@@ -1,8 +1,10 @@
 import express from "express"
+import auth from "./routes/Auth.js"
 
 const app = express()
-app.get("/", (req, res) =>{
-    console.log("Hello World")
-})
+
+//middlewares
+app.use('/api', auth)
+
 
 export default app
