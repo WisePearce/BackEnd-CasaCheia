@@ -1,5 +1,5 @@
 import Joi from "joi";
-import bcrypt from "bcrypt"
+import hash_password from "../config/password.hash.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
@@ -40,11 +40,7 @@ const userSchema = new mongoose.Schema({
 
 
 //Middleware para hash da senha
-userSchema.pre("save", async function(next) {
-    if(!this.isModified("password")) return next()
-    this.password = await bcrypt.hash(this.password, 10)
-    next()
-})
+userSchema.pre("save", hash_password)
 
 //gerar TOKEN JWT
 userSchema.methods.generateJWT = function() {
