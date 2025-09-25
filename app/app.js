@@ -10,7 +10,8 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true}))
 app.use(helmet())
 app.use(cors())
-app.use('/api', auth)
+//caminho: http://localhost:3000/api/v1/sigin
+app.use('/api/v1', auth)
 
 app.get('/', (req, res) => {
     res.json({message: "tudo ok"})

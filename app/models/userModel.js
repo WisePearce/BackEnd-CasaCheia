@@ -1,5 +1,5 @@
 import Joi from "joi";
-import hash_password from "../config/password.hash.js";
+import hash_password from "../config/passwordHash.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
@@ -21,6 +21,12 @@ const userSchema = new mongoose.Schema({
         lowercase: true,
         match: [/^\S+@\S+\.\S+$/, "E-mail inválido"]
     },
+    telefone: {
+        type: String,
+        required: true,
+        minlength: 9,
+        maxlength: 9
+    },
     password: {
         type: String,
         required: true,
@@ -39,8 +45,18 @@ const userSchema = new mongoose.Schema({
 }, {timestamps: true})
 
 
+
 //Middleware para hash da senha
-userSchema.pre("save", hash_password)
+userSchema.pre("save", async function (next) {
+      if (!this.isModified("password")) return next()
+
+  try {
+    this.password = await hash_password(this.password) // usa a tua função
+    next()
+  } catch (err) {
+    next(err)
+  }
+})
 
 //gerar TOKEN JWT
 userSchema.methods.generateJWT = function() {
