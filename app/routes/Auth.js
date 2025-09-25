@@ -1,8 +1,9 @@
 import { Router} from "express"
-import create from "../controllers/Auth.js"
+import {register, login} from "../controllers/Auth.js"
 
 const route = Router()
 
-const auth = route.post('/sigin', create)
+const signin = route.post('/sigin', register)
+const loginUser = route.post('/login', login)
 
-export default auth
+export {signin, loginUser}

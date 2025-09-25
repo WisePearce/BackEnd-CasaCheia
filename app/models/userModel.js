@@ -1,5 +1,5 @@
 import Joi from "joi";
-import hash_password from "../config/passwordHash.js";
+import {hash_password} from "../config/passwordHash.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 8,
-        select: false
+        select: true
     },
     role: {
         type: String,
@@ -58,13 +58,5 @@ userSchema.pre("save", async function (next) {
   }
 })
 
-//gerar TOKEN JWT
-userSchema.methods.generateJWT = function() {
-    return jwt.sign(
-        {id: this._id, role: this.role},
-        process.env.JWT_KEY || "minhaChaveSecretaGuardada",
-        {expiresIn: "20min"}
-    )
-}
 
 export default mongoose.model("User", userSchema)
