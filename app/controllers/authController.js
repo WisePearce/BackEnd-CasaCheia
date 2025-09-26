@@ -2,6 +2,7 @@ import User from "../models/userModel.js"
 import { userDataValidation, emailPasswordValidation } from "../config/validation.js"
 import { passwordVerification } from "../config/passwordHash.js"
 import jwt from "jsonwebtoken"
+import Token from "../models/tokenModel.js"
 import dotenv from "dotenv"
 
 dotenv.config()
@@ -80,6 +81,8 @@ const login = async (req, res) => {
                 message: "Email ou password incorreta!"
             })
         }
+
+
         //dados do ususario correto, ele vai ser autenticado gerando um token !
         const token = jwt.sign(
             {
@@ -89,6 +92,23 @@ const login = async (req, res) => {
             process.env.JWT_KEY,
             { expiresIn: '30min' }
         )
+        //gerar o refresh token para o cliente (user) e salvar no banco de dados
+        const userRefreshToken = jwt.sign(
+            {
+                id: verifyUser._id,
+                email: verifyUser.email
+            },
+            process.env.JWT_REFRESH_SECRET,
+            {
+                expiresIn: "7d"
+            }
+        )
+
+        //salvar o refreshToken no banco
+        await Token.create({
+            userId: verifyUser._id,
+            token: userRefreshToken
+        })
 
         return res.status(200).json({
             status: true,
@@ -110,4 +130,71 @@ const login = async (req, res) => {
         })
     }
 }
-export { register, login } 
+
+const refreshToken = async (req, res) => {
+    const refreshToken = req.body.token;
+
+    if (!refreshToken) {
+        return res.status(401).json({
+            status: false,
+            message: "Token de atualização não fornecido."
+        });
+    }
+
+    try {
+        // verifica se existe no banco
+        const storedToken = await Token.findOne({ token: refreshToken })
+
+        if (!storedToken) {
+            return res.status(403).json({
+                status: false,
+                message: "Refresh token inválido."
+            })
+        }
+
+        jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, user) => {
+            if (err) {
+                return res.status(403).json({
+                    status: false,
+                    message: "Refresh token expirado."
+                });
+            }
+
+            // gera novo access token
+            const accessToken = jwt.sign(
+                { id: user.id, email: user.email },
+                process.env.JWT_SECRET,
+                { expiresIn: "15m" }
+            );
+
+            res.json({ status: true, accessToken })
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: "Erro interno no servidor",
+            error: error.message
+        });
+    }
+};
+
+const logout = async (req, res) => {
+    const refreshToken = req.body.token
+
+    try {
+        await Token.deleteOne({ token: refreshToken })
+        return res.json({
+            status: true,
+            message: "Logout realizado com sucesso."
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: "Erro interno no servidor",
+            error: error.message
+        })
+    }
+}
+
+
+export { register, login, refreshToken, logout } 

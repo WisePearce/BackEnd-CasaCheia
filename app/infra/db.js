@@ -5,7 +5,7 @@ dotenv.config()
 async function connectDB() {
 
     try {
-        const conn = await mongoose.connect(process.env.MONGODB_URL, {
+        const conn = await mongoose.connect(`${process.env.MONGODB_URL}ecomerce`, {
             maxPoolSize: 10
         }
         )

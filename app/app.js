@@ -1,6 +1,6 @@
 import express from "express"
 import cors from "cors"
-import {signin, loginUser} from "./routes/Auth.js"
+import {signin, loginUser} from "./routes/authRoutes.js"
 import helmet from "helmet"
 
 const app = express()
