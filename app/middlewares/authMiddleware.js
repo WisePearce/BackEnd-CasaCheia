@@ -23,8 +23,9 @@ const authenticateToken = (req, res, next) => {
                 message: "token invalido"
             })
         }
-        // retornar dados para o cliente(user)
-        return res.status(200).json(user)
+        // guardar os dados do payload do user 
+        req.user = user
+        next()
     })
 
 }

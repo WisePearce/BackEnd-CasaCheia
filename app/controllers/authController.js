@@ -3,6 +3,7 @@ import { userDataValidation, emailPasswordValidation } from "../config/validatio
 import { passwordVerification } from "../config/passwordHash.js"
 import jwt from "jsonwebtoken"
 import Token from "../models/tokenModel.js"
+import authenticateToken from "../middlewares/authMiddleware.js"
 import dotenv from "dotenv"
 
 dotenv.config()
@@ -208,7 +209,8 @@ const profile = async (req, res) => {
     //const token =
     return res.status(200).json({
         status: true,
-        message: "profile"
+        message: "profile",
+        dados: req.user
     })
 } 
 

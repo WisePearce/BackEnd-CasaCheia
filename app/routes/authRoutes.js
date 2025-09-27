@@ -7,6 +7,7 @@ const route = Router()
 const signin = route.post('/signup', register)
 const loginUser = route.post('/signin', login)
 const logoutUser = route.post('/logout', logout)
-const profileUser = route.get('/profile', authenticateToken)
+//rota protegida para ir para o user profile
+const profileUser = route.get('/profile', authenticateToken, profile)
 
 export {signin, loginUser, logoutUser, profileUser }
