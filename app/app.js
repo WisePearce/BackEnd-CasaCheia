@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import {signin, loginUser, logoutUser, profileUser} from "./routes/authRoutes.js"
 import helmet from "helmet"
-import product from "./routes/productsRoutes.js"
+import {product, show, deleteOneProduct, searchProduct} from "./routes/productsRoutes.js"
 
 const app = express()
 
@@ -20,6 +20,9 @@ app.use('/api.casacheia', profileUser)
 
 //routes para produtos
 app.use('/api.casacheia', product)
+app.use('/api.casacheia', show)
+app.use('/api.casacheia', deleteOneProduct)
+app.use('/api.casacheia', searchProduct)
 
 app.get('/', (req, res) => {
     res.json({message: "tudo ok"})

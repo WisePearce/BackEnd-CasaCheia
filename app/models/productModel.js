@@ -6,7 +6,8 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 2,
-        maxlength: 30
+        maxlength: 30,
+        unique: true
     },
     price: {
         type: mongoose.Types.Decimal128,
@@ -14,6 +15,10 @@ const productSchema = new mongoose.Schema({
     },
     category: {
         type: String,
+        required: true
+    },
+    stock: {
+        type: Number,
         required: true
     },
     image: {
