@@ -1,27 +1,32 @@
 import jwt from 'jsonwebtoken'
-import dotenv from "dotenv"
+import dotenv from 'dotenv'
 
-const verifyToken = (req, res, next) => {
+//validar o Token pelo header da application
+const authenticateToken = (req, res, next) => {
 
-    const authHeader = req.headers["authorization"] 
-    const token  = authHeader && authHeader.split(" ")[1]
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
 
-    if(!token){
+    //verificar se foi informado algum token
+    if (!token) {
         return res.status(401).json({
             status: false,
-            message: "Acesso negado. token nao informado!"
+            message: "Nenhum token informado"
         })
     }
 
-    jwt.verify(token, process.env.JWT_KEY, (error, user) => {
-        if(error){
+    //validar o token informado
+    const tokenValidation = jwt.verify(token, process.env.JWT_KEY, (error, user) => {
+        if (error) {
             return res.status(403).json({
                 status: false,
-                message: "token invalido ou expirado."
+                message: "token invalido"
             })
         }
-        req.user = user
-        next()
+        // retornar dados para o cliente(user)
+        return res.status(200).json(user)
     })
 
 }
+
+export default authenticateToken

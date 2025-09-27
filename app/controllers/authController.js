@@ -87,7 +87,8 @@ const login = async (req, res) => {
         const token = jwt.sign(
             {
                 id: verifyUser._id,
-                email: verifyUser.email
+                email: verifyUser.email,
+                role: verifyUser.role
             },
             process.env.JWT_KEY,
             { expiresIn: '30min' }
@@ -178,23 +179,38 @@ const refreshToken = async (req, res) => {
     }
 };
 
-const logout = async (req, res) => {
-    const refreshToken = req.body.token
+const logout = async(req, res) => {
 
-    try {
-        await Token.deleteOne({ token: refreshToken })
-        return res.json({
-            status: true,
-            message: "Logout realizado com sucesso."
-        });
-    } catch (error) {
-        return res.status(500).json({
+try {
+    const refreshToken = req.body.token
+    //deletando o refresh token do banco de dados
+    const tokenDeleted = await Token.deleteOne({token: refreshToken})
+
+    if(!tokenDeleted.deletedCount) {
+        return res.status(401).json({
             status: false,
-            message: "Erro interno no servidor",
-            error: error.message
+            message: "falha ao realizar logout!"
         })
     }
+    return res.status(200).json({
+        status: true,
+        message: "logout realizado com sucesso!"
+    })
+} catch (error) {
+    res.status(500).json({
+        status: false,
+        message: error
+    })
+}
 }
 
+const profile = async (req, res) => {
+    //const token =
+    return res.status(200).json({
+        status: true,
+        message: "profile"
+    })
+} 
 
-export { register, login, refreshToken, logout } 
+
+export { register, login, refreshToken, logout, profile } 
