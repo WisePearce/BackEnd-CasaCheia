@@ -1,4 +1,3 @@
-import Joi from "joi";
 import {hash_password} from "../config/passwordHash.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
@@ -36,7 +35,8 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['user', 'admin'],
-        default: 'user'
+        default: 'user',
+        required: true
     },
     createdAt: {
         type: Date,

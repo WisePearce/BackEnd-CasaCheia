@@ -206,12 +206,22 @@ try {
 }
 
 const profile = async (req, res) => {
-    //const token =
-    return res.status(200).json({
-        status: true,
-        message: "profile",
-        dados: req.user
-    })
+    try {
+
+        const id = req.user['id']
+        const user = await User.findById({_id: id}).select("-password -_id")
+        return res.json(user)
+        process.exit()
+        return res.status(200).json({
+            status: true,
+            user
+        })
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: error
+        })
+    }
 } 
 
 

@@ -11,7 +11,7 @@ const authenticateToken = (req, res, next) => {
     if (!token) {
         return res.status(401).json({
             status: false,
-            message: "Nenhum token informado"
+            message: "Usuario nao autorizado!"
         })
     }
 

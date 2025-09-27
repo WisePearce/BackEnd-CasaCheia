@@ -28,7 +28,8 @@ const userDataValidation = Joi.object({
             "string.pattern.base": "O telefone deve ter 9 dígitos numéricos.",
             "any.required": "O telefone é obrigatório."
         }),
-
+    role: Joi.string().required().valid("user", "admin").default("user"),
+    
     password: Joi.string()
         .min(8)
         .required()
