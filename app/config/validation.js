@@ -29,7 +29,7 @@ const userDataValidation = Joi.object({
             "any.required": "O telefone é obrigatório."
         }),
     role: Joi.string().required().valid("user", "admin").default("user"),
-    
+
     password: Joi.string()
         .min(8)
         .required()
@@ -57,4 +57,67 @@ const emailPasswordValidation = Joi.object({
         })
 })
 
-export  {userDataValidation, emailPasswordValidation}
+
+const productValidation = Joi.object({
+  name: Joi.string()
+    .min(4)
+    .max(50)
+    .required()
+    .messages({
+      "string.base": `"name" deve ser um texto`,
+      "string.empty": `"campo nome não pode ser vazio`,
+      "string.min": `"name" deve ter pelo menos {4} caracteres`,
+      "string.max": `"name" deve ter no máximo {5} caracteres`,
+      "any.required": `"name" é obrigatório`
+    }),
+
+  price: Joi.number()
+    .positive()
+    .precision(2)
+    .required()
+    .messages({
+      "number.base": `"price" deve ser um número`,
+      "number.positive": `"price" deve ser maior que zero`,
+      "any.required": `"price" é obrigatório`
+    }),
+
+  category: Joi.string()
+    .max(30)
+    .required()
+    .empty()
+    .messages({
+      "string.base": `"category" deve ser um texto`,
+      "any.required": `"category" é obrigatório`,
+      "string.empty": "campo categoria deve ser preenchido"
+    }),
+
+  stock: Joi.number()
+    .integer()
+    .empty()
+    .min(0)
+    .required()
+    .messages({
+      "number.base": `"stock" deve ser um número inteiro`,
+      "number.min": `"stock" não pode ser negativo`,
+      "number.empty": "campo stock deve ser preenchido"
+    }),
+
+  description: Joi.string()
+    .max(255)
+    .required()
+    .messages({
+      "string.base": `"description" deve ser um texto`,
+      "any.required": `"description" é obrigatório`
+    }),
+
+  image: Joi.string()
+    .uri()
+    .optional()
+    .messages({
+      "string.uri": `"image" deve ser uma URL válida`
+    })
+});
+
+
+
+export  {userDataValidation, emailPasswordValidation, productValidation}
