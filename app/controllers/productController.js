@@ -16,7 +16,7 @@ const createProduct = async (req, res) => {
                 message: error.details[0]
             })
         }
-        
+
         const productName = product.name
 
         //ver se ja existe um produto com este mesmo nome
@@ -27,6 +27,12 @@ const createProduct = async (req, res) => {
                 message: "Ja existe um produto com este mesmo nome, informe outro nome por favor"
             })
         }
+
+        //verificar se existe alguma imagem do produto
+        if(req.file) {
+            product.image = `/uploads/product/${req.file.filename}`
+        }
+
         //cadastrar novo produto
         const newProduct = await productSchema.create(product)
 
