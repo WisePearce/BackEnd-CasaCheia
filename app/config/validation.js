@@ -13,14 +13,6 @@ const userDataValidation = Joi.object({
             "string.max": "O nome deve ter no máximo 50 caracteres."
         }),
 
-    email: Joi.string()
-        .email()
-        .required()
-        .messages({
-            "string.email": "O email deve ser válido.",
-            "any.required": "O email é obrigatório."
-        }),
-
     telefone: Joi.string()
         .pattern(/^[0-9]{9}$/) // 9 dígitos (ex: Angola)
         .required()
