@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import {signin, loginUser, logoutUser, profileUser} from "./routes/authRoutes.js"
 import helmet from "helmet"
-import {product, show, deleteOneProduct, searchProduct} from "./routes/productsRoutes.js"
+import {product, show, deleteOneProduct, findOneProduct} from "./routes/productsRoutes.js"
 import dotenv from "dotenv"
 
 const app = express()
@@ -26,7 +26,7 @@ app.use('/api.casacheia', profileUser)
 app.use('/api.casacheia', product)
 app.use('/api.casacheia', show)
 app.use('/api.casacheia', deleteOneProduct)
-app.use('/api.casacheia', searchProduct)
+app.use('/api.casacheia', findOneProduct)
 
 
 //rota index
