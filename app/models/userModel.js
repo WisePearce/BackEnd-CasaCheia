@@ -13,13 +13,6 @@ const userSchema = new mongoose.Schema({
         minlength: 5,
         maxlength: 50
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        match: [/^\S+@\S+\.\S+$/, "E-mail inválido"]
-    },
     telefone: {
         type: String,
         required: true,
