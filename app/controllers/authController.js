@@ -14,12 +14,12 @@ const register = async (req, resp) => {
         console.log(dados)
 
         //ver se o usuario ja existe
-        const name = dados.name
-        const verifyUser = await User.findOne({ name: name })
+        const telefone = dados.telefone
+        const verifyUser = await User.findOne({ telefone: telefone })
         if (verifyUser) {
             return resp.status(422).json({
                 status: false,
-                message: "Este nome de Usuario ja se encontra em uso!"
+                message: "Use outro numero de telefone porfavor!"
             })
         }
 
