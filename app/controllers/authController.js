@@ -14,12 +14,12 @@ const register = async (req, resp) => {
         console.log(dados)
 
         //ver se o usuario ja existe
-        const email = dados.email
-        const verifyUser = await User.findOne({ email: email })
+        const name = dados.name
+        const verifyUser = await User.findOne({ name: name })
         if (verifyUser) {
             return resp.status(422).json({
                 status: false,
-                message: "Este endereco de email, ja se encontra em uso!"
+                message: "Este nome de Usuario ja se encontra em uso!"
             })
         }
 
