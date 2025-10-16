@@ -1,5 +1,5 @@
 import User from "../models/userModel.js"
-import { userDataValidation, emailPasswordValidation } from "../config/validation.js"
+import { userDataValidation, telefonePasswordValidation } from "../config/validation.js"
 import { passwordVerification } from "../config/passwordHash.js"
 import jwt from "jsonwebtoken"
 import Token from "../models/tokenModel.js"
