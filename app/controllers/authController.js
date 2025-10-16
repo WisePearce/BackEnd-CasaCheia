@@ -53,8 +53,8 @@ const login = async (req, res) => {
     try {
         const dados = req.body
 
-        //validar os campos email e password
-        const { error, value } = emailPasswordValidation.validate(dados)
+        //validar os campos telefone e password
+        const { error, value } = telefonePasswordValidation.validate(dados)
         if (error) {
 
             return res.status(400).json({
@@ -64,8 +64,8 @@ const login = async (req, res) => {
         }
 
         //ver se o usuario ja existe
-        const email = dados.email
-        const verifyUser = await User.findOne({ email: email })
+        const telefone = dados.telefone
+        const verifyUser = await User.findOne({ telefone: telefone })
         if (!verifyUser) {
             return res.status(404).json({
                 status: false,
@@ -88,7 +88,7 @@ const login = async (req, res) => {
         const token = jwt.sign(
             {
                 id: verifyUser._id,
-                email: verifyUser.email,
+                telefone: verifyUser.telefone,
                 role: verifyUser.role
             },
             process.env.JWT_KEY,
@@ -98,7 +98,7 @@ const login = async (req, res) => {
         const userRefreshToken = jwt.sign(
             {
                 id: verifyUser._id,
-                email: verifyUser.email
+                telefone: verifyUser.telefone
             },
             process.env.JWT_REFRESH_SECRET,
             {
@@ -119,7 +119,7 @@ const login = async (req, res) => {
                 status: true,
                 id: verifyUser._id,
                 name: verifyUser.name,
-                email: verifyUser.email
+                telefone: verifyUser.telefone
             },
             token
         })
