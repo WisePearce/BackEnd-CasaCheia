@@ -34,13 +34,13 @@ const userDataValidation = Joi.object({
         })
 })
 
-const emailPasswordValidation = Joi.object({
-    email: Joi.string()
-        .email()
+const telefonePasswordValidation = Joi.object({
+    telefone: Joi.string()
+        .pattern(/^[0-9]{9}$/) // 9 dígitos (ex: Angola)
         .required()
         .messages({
-            "string.email": "O email deve ser válido.",
-            "any.required": "O email é obrigatório."
+            "string.pattern.base": "O telefone deve ter 9 dígitos numéricos.",
+            "any.required": "O telefone é obrigatório."
         }),
 
     password: Joi.string()
@@ -115,4 +115,4 @@ const productValidation = Joi.object({
 
 
 
-export  {userDataValidation, emailPasswordValidation, productValidation}
+export  {userDataValidation, telefonePasswordValidation, productValidation}
