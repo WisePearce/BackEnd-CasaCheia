@@ -35,9 +35,28 @@ const register = async (req, resp) => {
 
         //Os dados estao limpos entao, bora cadastrar
         const user = await User.create(dados)
+        //gerar token para autenticacao
+        const token = jwt.sign(
+            {
+                id: user_id,
+                telefone: verifyUser.telefone,
+                role: user.role
+            },
+            process.env.JWT_KEY,
+            { expiresIn: '30min' }
+        )
+        //resposta para o cliente -> front
         resp.status(201).json({
             status: true,
-            message: "usuario criado com sucesso!"
+            message: "usuario criado com sucesso e autenticado com sucesso!",
+            user: {
+                id: user._id,
+                name: user.name,
+                telefone: user.telefone,
+                role: user.role,
+                createdAt: user.createdAt
+            },
+            token
         })
 
     } catch (error) {
@@ -180,36 +199,36 @@ const refreshToken = async (req, res) => {
     }
 };
 
-const logout = async(req, res) => {
+const logout = async (req, res) => {
 
-try {
-    const refreshToken = req.body.token
-    //deletando o refresh token do banco de dados
-    const tokenDeleted = await Token.deleteOne({token: refreshToken})
+    try {
+        const refreshToken = req.body.token
+        //deletando o refresh token do banco de dados
+        const tokenDeleted = await Token.deleteOne({ token: refreshToken })
 
-    if(!tokenDeleted.deletedCount) {
-        return res.status(401).json({
+        if (!tokenDeleted.deletedCount) {
+            return res.status(401).json({
+                status: false,
+                message: "falha ao realizar logout!"
+            })
+        }
+        return res.status(200).json({
+            status: true,
+            message: "logout realizado com sucesso!"
+        })
+    } catch (error) {
+        res.status(500).json({
             status: false,
-            message: "falha ao realizar logout!"
+            message: error
         })
     }
-    return res.status(200).json({
-        status: true,
-        message: "logout realizado com sucesso!"
-    })
-} catch (error) {
-    res.status(500).json({
-        status: false,
-        message: error
-    })
-}
 }
 
 const profile = async (req, res) => {
     try {
 
         const id = req.user['id']
-        const user = await User.findById({_id: id}).select("-password -_id")
+        const user = await User.findById({ _id: id }).select("-password -_id")
         return res.json(user)
         process.exit()
         return res.status(200).json({
@@ -222,7 +241,7 @@ const profile = async (req, res) => {
             message: error
         })
     }
-} 
+}
 
 
 export { register, login, refreshToken, logout, profile } 
