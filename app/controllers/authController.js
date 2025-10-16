@@ -38,8 +38,8 @@ const register = async (req, resp) => {
         //gerar token para autenticacao
         const token = jwt.sign(
             {
-                id: user_id,
-                telefone: verifyUser.telefone,
+                id: user._id,
+                telefone: user.telefone,
                 role: user.role
             },
             process.env.JWT_KEY,
