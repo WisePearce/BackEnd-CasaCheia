@@ -1,10 +1,15 @@
 import multer from "multer"
-import { extname, resolve } from "path"
-/*
-const storage = () => {
-  return multer.diskStorage({
-    destination: "./temp/uploads/products",
-    filename: 
-  })
+import fs from "fs"
+import path from "path"
+
+async function uploadToSupabase(localPath, filename, mimeType) {
+  const { data , error } = await 
 }
-  */
+
+//salvar temporariamente no tmp
+
+const upload = multer({dest: '/tmp'})
+
+
+
+export default upload

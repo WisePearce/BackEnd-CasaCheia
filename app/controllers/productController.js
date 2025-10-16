@@ -5,10 +5,11 @@ import mongoose from "mongoose";
 
 const createProduct = async (req, res) => {
     try {
-        const product = req.body
+        const { name, price, category, stock, description } = req.body
+        const image = req.file ? req.file.filename : null
 
         //validar os dados vindo do formulario
-        const { error, value } = await productValidation.validate(product)
+        const { error, value } = await productValidation.validate({ name, price, category, stock, image,  description })
 
         if (error) {
             return res.status(400).json({
