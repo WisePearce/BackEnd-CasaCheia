@@ -1,6 +1,6 @@
 import express from "express"
 import cors from "cors"
-import {signin, loginUser, logoutUser, profileUser} from "./routes/authRoutes.js"
+import {signin, loginUser, logoutUser, profileUser, update} from "./routes/authRoutes.js"
 import helmet from "helmet"
 import {product, show, deleteOneProduct, findOneProduct} from "./routes/productsRoutes.js"
 import dotenv from "dotenv"
@@ -13,13 +13,13 @@ app.use(express.urlencoded({ extended: true}))
 app.use(helmet())
 app.use(cors())
 
-
-//endereco base: http://localhost:3000/api/v1/s
+//endereco base: http://localhost:3000/api/v1/supdate
 //routes para usuario
 app.use('/api.casacheia/auth', signin)
 app.use('/api.casacheia/auth', loginUser)
 app.use('/api.casacheia/auth', logoutUser)
 app.use('/api.casacheia', profileUser)
+app.use('/api.casacheia', update)
 
 
 //routes para produtos
