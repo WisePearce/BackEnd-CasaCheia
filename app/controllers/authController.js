@@ -1,8 +1,10 @@
 import User from "../models/userModel.js"
-import { userDataValidation, telefonePasswordValidation } from "../config/validation.js"
+import { userDataValidation, telefonePasswordValidation, nameTelefoneValidation } from "../config/validation.js"
+import updateSchema from "../config/updateSchema.js"
 import { passwordVerification } from "../config/passwordHash.js"
 import jwt from "jsonwebtoken"
 import Token from "../models/tokenModel.js"
+import argon2 from "argon2"
 import authenticateToken from "../middlewares/authMiddleware.js"
 import dotenv from "dotenv"
 
@@ -45,6 +47,25 @@ const register = async (req, resp) => {
             process.env.JWT_KEY,
             { expiresIn: '30min' }
         )
+
+        //gerar o refresh token para o cliente (user) e salvar no banco de dados
+        const userRefreshToken = jwt.sign(
+            {
+                id: user._id,
+                telefone: user.telefone
+            },
+            process.env.JWT_REFRESH_SECRET,
+            {
+                expiresIn: "7d"
+            }
+        )
+
+        //salvar o refreshToken no banco
+        await Token.create({
+            userId: user._id,
+            token: userRefreshToken
+        })
+
         //resposta para o cliente -> front
         resp.status(201).json({
             status: true,
@@ -243,5 +264,70 @@ const profile = async (req, res) => {
     }
 }
 
+const updateUser = async (req, res) => {
+    try {
+        const id = req.user['id']
+        const dados = req.body.sta
+        const { error, value } = updateSchema.validate(dados)
 
-export { register, login, refreshToken, logout, profile } 
+        if (error) {
+            return res.status(400).json({
+                status: false,
+                message: error.details[0].message
+            })
+        }
+
+        //ver se o usuario ja existe
+        const verifyUser = await User.findOne({ telefone: value.telefone })
+        if (verifyUser) {
+            return res.status(422).json({
+                status: false,
+                message: "Use outro numero de telefone porfavor!"
+            })
+        }
+
+        const user = await User.findById({ _id: id })
+
+        const userId = req.user.id;
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        const { name, telefone, password, currentPassword } = value;
+
+        // 🔍 2. Verifica consistência entre as senhas
+        const wantsToChangePassword = password || currentPassword;
+        if (wantsToChangePassword) {
+            if (!password || !currentPassword) {
+                return res.status(400).json({
+                    message: 'Para alterar a senha, informe a senha atual e a nova senha.',
+                });
+            }
+        }
+
+        // 🔐 4. Atualiza a senha (se solicitado)
+        if (password && currentPassword) {
+            const isPasswordCorrect = await argon2.verify(user.password, currentPassword);
+            if (!isPasswordCorrect) {
+                return res.status(401).json({ message: 'Senha atual incorreta.' });
+            }
+
+            user.password = await argon2.hash(password);
+        }
+
+        // 🧩 5. Atualiza outros campos se informados
+        if (name) user.name = name.trim();
+        if (telefone) user.telefone = telefone.trim();
+
+        // 💾 6. Salva as alterações
+        await user.save();
+
+        return res.json({ message: 'Perfil atualizado com sucesso!' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Erro ao atualizar perfil.' });
+    }
+}
+
+
+export { register, login, refreshToken, logout, profile, updateUser }

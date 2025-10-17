@@ -1,33 +1,50 @@
-import jwt from 'jsonwebtoken'
-import dotenv from 'dotenv'
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-//validar o Token pelo header da application
+dotenv.config();
+
 const authenticateToken = (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
-
-    //verificar se foi informado algum token
+    // Verifica se o token foi fornecido
     if (!token) {
-        return res.status(401).json({
-            status: false,
-            message: "Usuario nao autorizado!"
-        })
+      return res.status(401).json({
+        status: false,
+        message: 'Token não fornecido. Usuário não autorizado!',
+      });
     }
 
-    //validar o token informado
-    const tokenValidation = jwt.verify(token, process.env.JWT_KEY, (error, user) => {
-        if (error) {
-            return res.status(403).json({
-                status: false,
-                message: "token invalido"
-            })
-        }
-        // guardar os dados do payload do user 
-        req.user = user
-        next()
-    })
+    // Valida o token JWT
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
 
-}
+    // Se passou, anexa o payload do user à requisição
+    req.user = decoded;
+    next();
 
-export default authenticateToken
+  } catch (error) {
+    // Captura erros específicos do JWT
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        status: false,
+        message: 'Token expirado. Faça login novamente.',
+      });
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(403).json({
+        status: false,
+        message: 'Token inválido.',
+      });
+    }
+
+    // Caso algum erro inesperado
+    return res.status(500).json({
+      status: false,
+      message: 'Erro na validação do token.',
+    });
+  }
+};
+
+export default authenticateToken;
