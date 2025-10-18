@@ -1,10 +1,10 @@
 import User from "../models/userModel.js"
 import { userDataValidation, telefonePasswordValidation, nameTelefoneValidation } from "../config/validation.js"
 import updateSchema from "../config/updateSchema.js"
-import { passwordVerification } from "../config/passwordHash.js"
+import { passwordVerification, hash_password } from "../config/passwordHash.js"
 import jwt from "jsonwebtoken"
 import Token from "../models/tokenModel.js"
-import argon2 from "argon2"
+
 import authenticateToken from "../middlewares/authMiddleware.js"
 import dotenv from "dotenv"
 
@@ -119,7 +119,7 @@ const login = async (req, res) => {
         if (!isMatch) {
             return res.status(401).json({
                 status: false,
-                message: "Email ou password incorreta!"
+                message: "telefone ou password incorreta!"
             })
         }
 
@@ -132,7 +132,7 @@ const login = async (req, res) => {
                 role: verifyUser.role
             },
             process.env.JWT_KEY,
-            { expiresIn: '30min' }
+            { expiresIn: '50min' }
         )
         //gerar o refresh token para o cliente (user) e salvar no banco de dados
         const userRefreshToken = jwt.sign(
@@ -206,7 +206,7 @@ const refreshToken = async (req, res) => {
             const accessToken = jwt.sign(
                 { id: user.id, email: user.email },
                 process.env.JWT_SECRET,
-                { expiresIn: "15m" }
+                { expiresIn: "50m" }
             );
 
             res.json({ status: true, accessToken })
@@ -266,67 +266,34 @@ const profile = async (req, res) => {
 
 const updateUser = async (req, res) => {
     try {
-        const id = req.user['id']
-        const dados = req.body.sta
+        const dados = req.body
         const { error, value } = updateSchema.validate(dados)
 
         if (error) {
+            console.log("Erro de validacao dos campos")
             return res.status(400).json({
                 status: false,
                 message: error.details[0].message
             })
         }
-
-        //ver se o usuario ja existe
-        const verifyUser = await User.findOne({ telefone: value.telefone })
-        if (verifyUser) {
-            return res.status(422).json({
-                status: false,
-                message: "Use outro numero de telefone porfavor!"
-            })
-        }
-
-        const user = await User.findById({ _id: id })
-
-        const userId = req.user.id;
-        if (error) {
-            return res.status(400).json({ message: error.details[0].message });
-        }
-
         const { name, telefone, password, currentPassword } = value;
-
-        // 🔍 2. Verifica consistência entre as senhas
-        const wantsToChangePassword = password || currentPassword;
-        if (wantsToChangePassword) {
-            if (!password || !currentPassword) {
-                return res.status(400).json({
-                    message: 'Para alterar a senha, informe a senha atual e a nova senha.',
-                });
-            }
-        }
-
-        // 🔐 4. Atualiza a senha (se solicitado)
-        if (password && currentPassword) {
-            const isPasswordCorrect = await argon2.verify(user.password, currentPassword);
-            if (!isPasswordCorrect) {
-                return res.status(401).json({ message: 'Senha atual incorreta.' });
-            }
-
-            user.password = await argon2.hash(password);
-        }
-
-        // 🧩 5. Atualiza outros campos se informados
+        const user = await User.findById({ _id: req.id })
+        
         if (name) user.name = name.trim();
         if (telefone) user.telefone = telefone.trim();
 
-        // 💾 6. Salva as alterações
+        // 6. Salva as alterações
         await user.save();
 
-        return res.json({ message: 'Perfil atualizado com sucesso!' });
+        return res.json({ message: 'Dados atualizado com sucesso!' });
     } catch (err) {
         console.error(err);
         return res.status(500).json({ message: 'Erro ao atualizar perfil.' });
     }
+    
+}
+const updatePassword = async (req, res) => {
+    
 }
 
 

@@ -12,7 +12,7 @@ const authenticateToken = (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         status: false,
-        message: 'Token não fornecido. Usuário não autorizado!',
+        message: 'Token não informado. Usuário não autorizado!',
       });
     }
 
@@ -20,7 +20,7 @@ const authenticateToken = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_KEY);
 
     // Se passou, anexa o payload do user à requisição
-    req.user = decoded;
+    Object.assign(req, decoded)
     next();
 
   } catch (error) {
@@ -35,7 +35,7 @@ const authenticateToken = (req, res, next) => {
     if (error.name === 'JsonWebTokenError') {
       return res.status(403).json({
         status: false,
-        message: 'Token inválido.',
+        message: 'Token inválido, usuario nao autorizado.',
       });
     }
 
