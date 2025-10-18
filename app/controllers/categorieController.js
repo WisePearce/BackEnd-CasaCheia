@@ -135,3 +135,27 @@ export const deleteCategorie = async (req, resp) => {
     }
 }
 export const searchCategoriesByName = async (req, resp) => {
+    try {
+        const { name } = req.query;
+        const regex = new RegExp(name, 'i'); // 'i' para case-insensitive
+        const categories = await categorySchema.find({ name: { $regex: regex } });
+
+        if (categories.length === 0) {
+            return resp.status(404).json({
+                status: false,
+                message: "Nenhuma categoria encontrada com esse nome."
+            });
+        }
+
+        return resp.status(200).json({
+            status: true,
+            categories
+        });
+    } catch (error) {
+        console.log(error.message);
+        return resp.status(500).json({
+            status: false,
+            message: "Erro no servidor, tente novamente mais tarde."
+        });
+    }
+}   
