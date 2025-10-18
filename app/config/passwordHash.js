@@ -1,4 +1,4 @@
-import argon2, { hash } from "argon2"
+import argon2 from "argon2"
 
 const hash_password = async(password) => {
 

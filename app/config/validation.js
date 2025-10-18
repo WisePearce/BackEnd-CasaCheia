@@ -123,7 +123,8 @@ const productValidation = Joi.object({
     .required()
     .messages({
       "string.base": `"description" deve ser um texto`,
-      "any.required": `"description" é obrigatório`
+      "any.required": `"description" é obrigatório`,
+      "string.empty": "campo descrição deve ser preenchido "
     }),
 
   image: Joi.string()
@@ -134,6 +135,41 @@ const productValidation = Joi.object({
     })
 });
 
+const categoriesValidation = Joi.object({
+  name: Joi.string()
+    .min(4)
+    .max(50)
+    .required()
+    .messages({
+      "string.base": `nome deve ser um texto`,
+      "string.empty": `"campo nome não pode ser vazio`,
+      "string.min": `nome deve ter pelo menos {4} caracteres`,
+      "string.max": `nome deve ter no máximo {5} caracteres`,
+      "any.required": `nome é obrigatório`
+    }),
+
+  description: Joi.string()
+    .max(255)
+    .required()
+    .messages({
+      "string.base": `descricacao deve ser um texto`,
+      "any.required": `descricacao é obrigatório`,
+      "string.empty": "campo descrição deve ser preenchido " 
+    }),
+
+  image: Joi.string()
+    .required()
+    .optional()
+    .messages({
+      "any.required": `"image" é obrigatório`
+    })
+});
 
 
-export  {userDataValidation, telefonePasswordValidation, productValidation , nameTelefoneValidation}
+export {
+    userDataValidation,
+    nameTelefoneValidation,
+    telefonePasswordValidation,
+    productValidation,
+    categoriesValidation
+};
