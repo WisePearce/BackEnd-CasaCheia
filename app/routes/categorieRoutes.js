@@ -1,11 +1,14 @@
 import { Router } from "express";
 import { createCategorie, getCategories, getCategorieById, updateCategorie, deleteCategorie, searchCategoriesByName } from "../controllers/categorieController.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
+import upload from "../config/uploads.js";
+import asyncUpload  from "../middlewares/uploadMiddleware.js";
+
 
 const route = Router();
 
 //Rota para criar nova categoria
-route.post('/categories', authenticateToken, createCategorie);
+route.post('/categories', authenticateToken, asyncUpload(upload.single('image')), createCategorie);
 
 //Rota para obter todas as categorias
 route.get('/categories', getCategories);
@@ -18,7 +21,7 @@ route.get('/categories/search', searchCategoriesByName);
 route.get('/categories/:id', getCategorieById);
 
 //Rota para atualizar uma categoria por ID
-route.patch('/categories/:id', authenticateToken, updateCategorie);
+route.patch('/categories/:id', authenticateToken, asyncUpload(upload.single('image')), updateCategorie);
 
 //Rota para deletar uma categoria por ID
 route.delete('/categories/:id', authenticateToken, deleteCategorie);
