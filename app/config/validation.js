@@ -143,8 +143,8 @@ const categoriesValidation = Joi.object({
     .messages({
       "string.base": `nome deve ser um texto`,
       "string.empty": `"campo nome não pode ser vazio`,
-      "string.min": `nome deve ter pelo menos {4} caracteres`,
-      "string.max": `nome deve ter no máximo {5} caracteres`,
+      "string.min": `nome deve ter pelo menos 4 caracteres`,
+      "string.max": `nome deve ter no máximo 50 caracteres`,
       "any.required": `nome é obrigatório`
     }),
 
@@ -155,14 +155,8 @@ const categoriesValidation = Joi.object({
       "string.base": `descricacao deve ser um texto`,
       "any.required": `descricacao é obrigatório`,
       "string.empty": "campo descrição deve ser preenchido " 
-    }),
-
-  image: Joi.string()
-    .required()
-    .optional()
-    .messages({
-      "any.required": `"image" é obrigatório`
     })
+
 });
 
 

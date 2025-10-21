@@ -1,14 +1,31 @@
 import categorySchema from "../models/categorieModel.js";
-import { categoriesValidation }  from "../config/validation.js"
-
+import { categoriesValidation } from "../config/validation.js"
+import categorieUpdateValidation from "../config/categorieUpdateValidation.js"
 
 //Criar nova categoria
 export const createCategorie = async (req, resp) => {
     try {
-        const dados = req.body
+        const image = req.file ? req.file.filename : null
+        console.log("Imagem recebida no controller:", req.file); // Log para verificar a imagem recebida   
+        if (image == '' || image == null) {
+            return resp.status(400).json({
+                status: false,
+                message: "A imagem da categoria é obrigatória."
+            });
+        }
+        const { name, description } = req.body
+        //verificar se ja existe uma categoria com esse nome
+        const categorieExists = await categorySchema.findOne({ name });
+        if (categorieExists) {
+            return resp.status(400).json({
+                status: false,
+                message: "Já existe uma categoria com esse nome."
+            });
+        }
+        console.log(req.body)
 
         //validar os dados
-        const { error, value } = categoriesValidation.validate(dados);
+        const { error, value } = categoriesValidation.validate({ name, description });
 
         if (error) {
             return resp.status(400).json({
@@ -19,7 +36,8 @@ export const createCategorie = async (req, resp) => {
 
         //Os dados estao limpos entao, bora cadastrar
 
-        const categorie = await categorySchema.create(dados);
+        const categorie = await categorySchema.create({ name, description, image });
+
         return resp.status(201).json({
             status: true,
             message: "Categoria criada com sucesso!",
@@ -78,10 +96,27 @@ export const getCategorieById = async (req, resp) => {
 export const updateCategorie = async (req, resp) => {
     try {
         const { id } = req.params;
-        const dados = req.body;
+
+        const image = req.file ? req.file.filename : null
+        console.log("Imagem recebida no controller:", req.file); // Log para verificar a imagem recebida   
+
+        if (id == null || id == '') {
+            return resp.status(400).json({
+                status: false,
+                message: "ID da categoria é obrigatório."
+            });
+        }
+        const dados = await categorySchema.findById({ _id: id });
+
+        if (!dados) {
+            return resp.status(404).json({
+                status: false,
+                message: "Categoria não encontrada."
+            });
+        }
 
         //validar os dados
-        const { error, value } = categoriesValidation.validate(dados);
+        const { error, value } = categorieUpdateValidation.validate(req.body);
 
         if (error) {
             return resp.status(400).json({
@@ -89,21 +124,26 @@ export const updateCategorie = async (req, resp) => {
                 message: error.details[0].message
             });
         }
+        if (value.name !== undefined) dados.name = value.name
+        if (value.description !== undefined) dados.description = value.description
 
-        const updatedCategorie = await categorySchema.findByIdAndUpdate(id, dados, { new: true });
-        if (!updatedCategorie) {
-            return resp.status(404).json({
-                status: false,
-                message: "Categoria não encontrada."
+        if (image == null) {
+            const updateCategorie = await dados.save();
+            return resp.status(200).json({
+                status: true,
+                message: "Categoria atualizada com sucesso!",
+                dados: updateCategorie
             });
         }
+        dados.image = image
+        await dados.save();
         return resp.status(200).json({
             status: true,
             message: "Categoria atualizada com sucesso!",
-            updatedCategorie
+            dados: updateCategorie
         });
     } catch (error) {
-        console.log(error.message); 
+        console.log(error.message);
         return resp.status(500).json({
             status: false,
             message: "Erro no servidor, tente novamente mais tarde."
