@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 // Caminho absoluto para a pasta de upload
-const uploadDir = path.join(__dirname, '..', 'uploads')
+const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'categorie')
 
 // Configuração de armazenamento
 const storage = multer.diskStorage({

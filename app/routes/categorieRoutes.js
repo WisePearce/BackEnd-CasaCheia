@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createCategorie, getCategories, getCategorieById, updateCategorie, deleteCategorie, searchCategoriesByName } from "../controllers/categorieController.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
-import upload from "../config/uploads.js";
+import upload from "../config/multer/categorieUploads.js";
 import asyncUpload  from "../middlewares/uploadMiddleware.js";
 
 
