@@ -1,35 +1,11 @@
 import db from "../infra/db.js"
 import mongoose from "mongoose"
+import categoryModel from "./categorieModel.js"
 
-const productSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true,
-        minlength: 2,
-        maxlength: 30,
-        unique: true
-    },
-    price: {
-        type: mongoose.Types.Decimal128,
-        required: true
-    },
-    category: {
-        type: String,
-        required: true
-    },
-    stock: {
-        type: Number,
-        required: true
-    },
-    imagemUrl: {
-        type: String,
-        required: false
-    },
-    description: {
-        type: String,
-        required: true
-    }
-}, { timestamps: true }
-)
+npm install cloudinary
+# opcional para geração de URLs
+npm install @cloudinary/url-gen
+# opcional para integração com multer
+npm install multer multer-storage-cloudinary
 
 export default mongoose.model("product", productSchema)

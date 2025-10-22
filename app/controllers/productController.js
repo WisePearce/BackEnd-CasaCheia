@@ -5,34 +5,48 @@ import mongoose from "mongoose";
 
 const createProduct = async (req, res) => {
     try {
-        const { name, price, category, stock, description } = req.body
-        const image = req.file ? req.file.filename : null
+        const data = req.body
+        const images = req.files ? req.files.map(file => file.filename) : []
+        
+        //caso nao tenha imagems
+        if(images.length === 0){
+            return res.status(400).json({
+                status: false,
+                message: "precisa carregar pelo menos uma foto do produto"
+            })
+        }
+
+        //caso exceda o limite de imagens por produto
+        if(images.length > 4) {
+            return res.status(400).json({
+                status: false,
+                messages: "excedeu o limite maximo de imagens por produto, o limite deve ser 4 imagens"
+            })
+        }
 
         //validar os dados vindo do formulario
-        const { error, value } = await productValidation.validate({ name, price, category, stock, image,  description })
-
+        const { error, value } = await productValidation.validate(data)
+        
         if (error) {
             return res.status(400).json({
                 status: false,
                 message: error.details[0]
             })
         }
+        //dados validados
+        const product = value
 
-        const productName = product.name
-
+        const verifyProduct = await productSchema.findOne({ name: product.name })
+        
         //ver se ja existe um produto com este mesmo nome
-        const verifyProduct = await productSchema.findOne({ name: productName })
         if (verifyProduct) {
             return res.status(401).json({
                 status: false,
                 message: "Ja existe um produto com este mesmo nome, informe outro nome por favor"
             })
         }
-
-        //verificar se existe alguma imagem do produto
-        if(req.file) {
-            product.image = `/uploads/product/${req.file.filename}`
-        }
+        //adicionar a imagem ao produto
+        product.image = images
 
         //cadastrar novo produto
         const newProduct = await productSchema.create(product)
@@ -48,9 +62,16 @@ const createProduct = async (req, res) => {
             message: "produto cadastro com sucesso!"
         })
     } catch (error) {
+        console.log(error.message)
+        if(error.code === "LIMITED_UNEXPECTED_FILE"){
+            return res.status(400).json({
+                status: false,
+                message: "Limite de upload de imagens excedido"
+            })  
+        }
         return res.status(500).json({
             status: false,
-            message: error
+            message: "Erro no Servidor, Nao foi possivel cadastrar o produto, contacte o suporte!"
         })
     }
 }
