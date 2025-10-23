@@ -23,7 +23,7 @@ if(process.env.NODE_ENV === 'production'){
   storage = new cloudinaryStorage({
     cloudinary,
     params: {
-      folder: "categorie",
+      folder: "casacheia_uploads/categorie",
       allowed_formats: ['pgn', 'jpg', 'jpeg', 'webp']
     }
   })
