@@ -19,6 +19,17 @@ const authenticateToken = (req, res, next) => {
     // Valida o token JWT
     const decoded = jwt.verify(token, process.env.JWT_KEY);
 
+    //pegar o role do user
+    const role = decoded.role
+
+    //verificar se o user e admin
+    if(role !== 'admin'){
+      return res.status(403).json({
+        status: false,
+        message: 'Acesso negado, Area Restrita!'
+      })
+    }
+
     // Se passou, anexa o payload do user à requisição
     Object.assign(req, decoded)
     next();
