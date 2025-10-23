@@ -20,7 +20,7 @@ const userDataValidation = Joi.object({
             "string.pattern.base": "O telefone deve ter 9 dígitos numéricos.",
             "any.required": "O telefone é obrigatório."
         }),
-    role: Joi.string().required().valid("user", "admin").default("user").messages({
+    role: Joi.string().required().valid("user", "admin").default("user").optional().messages({
       "any.required": "campo role deve ser preenchido",
       "any.only": "o campo role deve ser user ou addmin"
     }),
@@ -102,8 +102,8 @@ const productValidation = Joi.object({
     .required()
     .empty()
     .messages({
-      "string.base": `"category" deve ser um texto`,
-      "any.required": `"category" é obrigatório`,
+      "string.base": "categoria deve ser um texto" ,
+      "any.required": "categoria é um campo obrigatório",
       "string.empty": "campo categoria deve ser preenchido"
     }),
 
@@ -113,17 +113,18 @@ const productValidation = Joi.object({
     .min(0)
     .required()
     .messages({
-      "number.base": `"stock" deve ser um número inteiro`,
-      "number.min": `"stock" não pode ser negativo`,
-      "number.empty": "campo stock deve ser preenchido"
+      "number.base": "stock deve ser um número inteiro",
+      "number.min": "stock não pode ser negativo",
+      "number.empty": "campo stock deve ser preenchido",
+      "any.required": "campo stock deve ser preenchido"
     }),
 
   description: Joi.string()
     .max(255)
     .required()
     .messages({
-      "string.base": `"description" deve ser um texto`,
-      "any.required": `"description" é obrigatório`,
+      "string.base": "description deve ser um texto",
+      "any.required": "description é obrigatório",
       "string.empty": "campo descrição deve ser preenchido "
     }),
 

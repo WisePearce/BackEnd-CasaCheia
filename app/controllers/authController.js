@@ -45,14 +45,15 @@ const register = async (req, resp) => {
                 role: user.role
             },
             process.env.JWT_KEY,
-            { expiresIn: '30min' }
+            { expiresIn: '90min' }
         )
 
         //gerar o refresh token para o cliente (user) e salvar no banco de dados
         const userRefreshToken = jwt.sign(
             {
                 id: user._id,
-                telefone: user.telefone
+                telefone: user.telefone,
+                role: user.role
             },
             process.env.JWT_REFRESH_SECRET,
             {

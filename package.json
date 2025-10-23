@@ -24,6 +24,7 @@
     "argon2": "^0.44.0",
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^6.0.0",
+    "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
@@ -38,5 +39,6 @@
     "swagger-jsdoc": "^3.7.0",
     "swagger-ui-express": "^5.0.1",
     "yarn": "^1.22.22"
-  }
+  },
+  "packageManager": "yarn@4.10.3"
 }
