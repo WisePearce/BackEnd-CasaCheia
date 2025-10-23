@@ -1,7 +1,13 @@
 import multer from 'multer'
+import dotenv from 'dotenv'
 import path from 'path'
+import cloudinary from '../cloudinary/cloudinary.js'
+import cloudinaryStorage from "multer-storage-cloudinary"
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
+
+//usando o dotenv para variaveis de ambiente
+dotenv.config()
 
 // Necessário para resolver diretórios com ES Modules
 const __filename = fileURLToPath(import.meta.url)
@@ -10,8 +16,20 @@ const __dirname = dirname(__filename)
 // Caminho absoluto para a pasta de upload
 const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'categorie')
 
-// Configuração de armazenamento
-const storage = multer.diskStorage({
+let storage
+
+//verificar o ambiente atual
+if(process.env.NODE_ENV === 'production'){
+  storage = new cloudinaryStorage({
+    cloudinary,
+    params: {
+      folder: "categorie",
+      allowed_formats: ['pgn', 'jpg', 'jpeg', 'webp']
+    }
+  })
+}else{
+  //configuracao do ambiente local, usando o multer diskStorage
+  storage = multer.diskStorage({
   destination: uploadDir,
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname)
@@ -19,8 +37,9 @@ const storage = multer.diskStorage({
     cb(null, `${Date.now()}-${name}${ext}`)
   }
 })
+}
 
-// Filtro de tipos de arquivos aceitos
+//Filtro de tipos de arquivos aceitos
 const fileFilter = (req, file, cb) => {
   const allowed = ['.png', '.jpg', '.jpeg', '.webp']
   const ext = path.extname(file.originalname).toLowerCase()

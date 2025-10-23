@@ -1,11 +1,15 @@
 import categorySchema from "../models/categorieModel.js";
 import { categoriesValidation } from "../config/validation.js"
+import path from "path";
+import dotenv from "dotenv";
 import categorieUpdateValidation from "../config/categorieUpdateValidation.js"
+dotenv.config()
 
 //Criar nova categoria
 export const createCategorie = async (req, resp) => {
     try {
-        const image = req.file ? req.file.filename : null
+        const image = req.file ? process.env.NODE_ENV === "production" ? req.file.path : req.file.filename : null
+
         console.log("Imagem recebida no controller:", req.file); // Log para verificar a imagem recebida   
         if (image == '' || image == null) {
             return resp.status(400).json({
