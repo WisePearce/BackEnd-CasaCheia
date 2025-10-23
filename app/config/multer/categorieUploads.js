@@ -2,12 +2,15 @@ import multer from 'multer'
 import dotenv from 'dotenv'
 import path from 'path'
 import cloudinary from '../cloudinary/cloudinary.js'
-import cloudinaryStorage from "multer-storage-cloudinary"
+import pkg from "multer-storage-cloudinary"
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 
 //usando o dotenv para variaveis de ambiente
 dotenv.config()
+
+// Importando o storage do cloudinary
+const { cloudinaryStorage } = pkg
 
 // Necessário para resolver diretórios com ES Modules
 const __filename = fileURLToPath(import.meta.url)
