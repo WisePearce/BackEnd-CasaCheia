@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import {signin, loginUser, logoutUser, profileUser, update} from "./routes/authRoutes.js"
 import helmet from "helmet"
-import {product, show, deleteOneProduct, findOneProduct} from "./routes/productsRoutes.js"
+import productRoutes from "./routes/productsRoutes.js"
 import categorieRoutes from "./routes/categorieRoutes.js";
 import dotenv from "dotenv"
 
@@ -24,10 +24,7 @@ app.use('/api.casacheia', update)
 
 
 //routes para produtos
-app.use('/api.casacheia', product)
-app.use('/api.casacheia', show)
-app.use('/api.casacheia', deleteOneProduct)
-app.use('/api.casacheia', findOneProduct)
+app.use('/api.casacheia', productRoutes);
 
 //rote para categorias
 app.use('/api.casacheia', categorieRoutes);
