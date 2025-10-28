@@ -23,6 +23,7 @@ app.use('/api.casacheia', profileUser)
 app.use('/api.casacheia', update)
 
 
+
 //routes para produtos
 app.use('/api.casacheia', productRoutes);
 

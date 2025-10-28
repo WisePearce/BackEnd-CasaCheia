@@ -1,16 +1,15 @@
 import multer from 'multer'
 import dotenv from 'dotenv'
 import path from 'path'
-import cloudinary from '../cloudinary/cloudinary.js'
-import pkg from "multer-storage-cloudinary"
+import cloudinaryConfig from '../cloudinary/cloudinary.js'
+import { CloudinaryStorage } from 'multer-storage-cloudinary'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
+import cloudinary from '../cloudinary/cloudinary.js'
 
 //usando o dotenv para variaveis de ambiente
 dotenv.config()
 
-// Importando o storage do cloudinary
-const { cloudinaryStorage } = pkg
 
 // Necessário para resolver diretórios com ES Modules
 const __filename = fileURLToPath(import.meta.url)
@@ -23,11 +22,12 @@ let storage
 
 //verificar o ambiente atual
 if(process.env.NODE_ENV === 'production'){
-  storage = new cloudinaryStorage({
+  storage = new CloudinaryStorage({
     cloudinary,
     params: {
-      folder: "casacheia_uploads/categorie",
-      allowed_formats: ['pgn', 'jpg', 'jpeg', 'webp']
+      folder: "casacheia_uploads/category",
+      format: async (req, file) => ('png', 'jpg', 'jpeg', 'webp'), // supports promises as well
+      public_id: (req, file) => file.fieldname + '-' + Date.now()
     }
   })
 }else{
@@ -51,6 +51,6 @@ const fileFilter = (req, file, cb) => {
 }
 
 // Cria instância do multer
-const upload = multer({ storage, fileFilter })
+const upload = multer({ storage, fileFilter, limits: {fileSize: 5*1024*1024} })
 
 export default upload

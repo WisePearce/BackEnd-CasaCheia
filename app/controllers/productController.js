@@ -5,12 +5,13 @@ import productUpdateValidation from "../config/productUpdateSchema.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cloudinary from "../config/cloudinary/cloudinary.js"
+dotenv.config()
 
 const createProduct = async (req, res) => {
     try {
         const data = req.body
-        const images = req.files ? req.files.map(file => file.filename) : []
-        
+        const images = req.files ? process.env.NODE_ENV === "production" ? req.files.path : req.files.filename : null
+        console.log("teste ",images)
         const isProduction = process.env.NODE_ENV === "production"
 
         //caso nao tenha imagems
@@ -153,8 +154,8 @@ const updateProduct = async (req, res) => {
     try {
         const id = req.params.id
         const productData = req.body
-        const images = req.files ? req.files.map(file => file.filename) : []
-        
+        const images = req.files 
+        console.log("teste ",images)
         //limitar quantidade de imagens
         if(images.length > 4) {
             return res.status(400).json({
