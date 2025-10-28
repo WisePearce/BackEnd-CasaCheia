@@ -101,15 +101,16 @@ export const updateCategorie = async (req, resp) => {
     try {
         const { id } = req.params;
 
-        const image = req.file ? req.file.filename : null
-        console.log("Imagem recebida no controller:", req.file); // Log para verificar a imagem recebida   
+        const image = req.file ? process.env.NODE_ENV === "production" ? req.file.path : req.file.filename : null
 
-        if (id == null || id == '') {
+        console.log("Imagem recebida no controller:", req.file); // Log para verificar a imagem recebida   
+        if (image == '' || image == null) {
             return resp.status(400).json({
                 status: false,
-                message: "ID da categoria é obrigatório."
+                message: "A imagem da categoria é obrigatória."
             });
         }
+
         const dados = await categorySchema.findById({ _id: id });
 
         if (!dados) {
@@ -202,4 +203,4 @@ export const searchCategoriesByName = async (req, resp) => {
             message: "Erro no servidor, tente novamente mais tarde."
         });
     }
-}   
+}
