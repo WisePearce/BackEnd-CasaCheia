@@ -9,5 +9,5 @@ const port = process.env.PORT || 3000
 connectDB()
 
 app.listen(port, () => {
-    console.log(`spervidor rodando no enderece : http://localhost:${port}`)
+    console.log(`servidor rodando no enderece : http://localhost:${port}`)
 })
