@@ -38,5 +38,6 @@
     "swagger-jsdoc": "^3.7.0",
     "swagger-ui-express": "^5.0.1",
     "yarn": "^1.22.22"
-  }
+  },
+  "packageManager": "yarn@4.10.3"
 }
