@@ -16,7 +16,7 @@ routes.patch('/products/:id', authenticateToken, asyncUpload(upload.array('image
 routes.get('/products/search', searchProduct)
 
 //routes para listar todos os produtos
-//routes.get('/products', showAll)
+routes.get('/products', showAll)
 
 
 //routes para deletar produtos
