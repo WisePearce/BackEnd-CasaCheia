@@ -221,4 +221,29 @@ const updateProduct = async (req, res) => {
     }
 }
 
-export { createProduct, showAll, deleteProduct, searchProduct, updateProduct }
+const productPaginaction = async (req, res) => {
+    try {
+        const { page = 1, limit = 10 } = req.query;
+
+        const products = await productSchema.find()
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .exec();
+
+        const count = await productSchema.countDocuments();
+
+        res.status(200).json({
+            products,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page
+        });
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({
+            status: false,
+            message: "Erro no Servidor, Nao foi possivel buscar os produtos, contacte o suporte!"
+        });
+    }   
+}
+
+export { createProduct, showAll, deleteProduct, searchProduct, updateProduct, productPaginaction }

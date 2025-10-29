@@ -1,10 +1,14 @@
 import express from "express"
-import {createProduct, showAll, deleteProduct, searchProduct, updateProduct} from "../controllers/productController.js"
+import {createProduct, showAll, deleteProduct, searchProduct, updateProduct, productPaginaction} from "../controllers/productController.js"
 import asyncUpload from "../middlewares/uploadMiddleware.js"
 import authenticateToken from "../middlewares/authMiddleware.js"
 import upload from "../config/multer/productUploads.js"
 
 const routes = express.Router()
+
+//pagination de produtos
+//routes.get('/products/pagination', productPaginaction)
+routes.get('/products/pagination', productPaginaction)
 
 //routes para cadastrar produtos
 routes.post('/products', authenticateToken, asyncUpload(upload.array('images', 4)), createProduct)
