@@ -1,6 +1,6 @@
 import express from "express"
 import cors from "cors"
-import {signin, loginUser, logoutUser, profileUser, update} from "./routes/authRoutes.js"
+import {signin, loginUser, logoutUser, profileUser, update, password} from "./routes/authRoutes.js"
 import helmet from "helmet"
 import productRoutes from "./routes/productsRoutes.js"
 import categorieRoutes from "./routes/categorieRoutes.js";
@@ -21,6 +21,7 @@ app.use('/api.casacheia/auth', loginUser)
 app.use('/api.casacheia/auth', logoutUser)
 app.use('/api.casacheia', profileUser)
 app.use('/api.casacheia', update)
+app.use('/api.casacheia', password)
 
 
 //routes para produtos
