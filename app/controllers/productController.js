@@ -98,14 +98,33 @@ const createProduct = async (req, res) => {
 }
 const showAll = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) ||  1
+        const limit = parseInt(req.query.limit) || 10
+        //console.log("pagina ", page, " limite ", limit)
+        //process.exit()
+
+        const skip = ( page - 1 ) * limit
+
         const allProducts = await productSchema.find()
+        .skip()
+        .limit(limit)
+
+        const totalProducts = await productSchema.countDocuments()
+
         if (!allProducts) {
             return res.status(404).json({
                 status: false,
                 message: "Nenhum Produto encontrado!"
             })
         }
-        return res.status(200).json(allProducts)
+        const total = Math.ceil( totalProducts / limit )
+
+        return res.status(200).json({
+            allProducts,
+            pagina_atual: page,
+            total_paginas: total,
+            total_produtos: totalProducts
+        })
     } catch (error) {
         return res.status(500).json({
             status: false,
