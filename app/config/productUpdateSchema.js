@@ -8,7 +8,7 @@ const productUpdateValidation = Joi.object({
       "string.base": `"name" deve ser um texto`,
       "string.empty": `"campo nome não pode ser vazio`,
       "string.min": `"name" deve ter pelo menos {4} caracteres`,
-      "string.max": `"name" deve ter no máximo {5} caracteres`,
+      "string.max": `"name" deve ter no máximo {50} caracteres`,
     }),
 
   price: Joi.number()
@@ -21,7 +21,7 @@ const productUpdateValidation = Joi.object({
     }),
 
   category: Joi.string()
-    .max(30)
+    .max(255)
     .optional()
     .empty()
     .messages({
