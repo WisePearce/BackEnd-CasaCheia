@@ -249,15 +249,16 @@ const logout = async (req, res) => {
 const profile = async (req, res) => {
     try {
 
-        const id = req.user['id']
-        const user = await User.findById({ _id: id }).select("-password -_id")
-        return res.json(user)
-        process.exit()
+        const payload = req.user
+        console.log(payload)
+
+        const user = await User.findById({ _id: payload.id }).select("-password -_id")
         return res.status(200).json({
             status: true,
             user
         })
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             status: false,
             message: error
@@ -268,6 +269,9 @@ const profile = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const dados = req.body
+        const payload = req.user
+        console.log(dados)
+        console.log(payload)
         const { error, value } = updateSchema.validate(dados)
 
         if (error) {
@@ -277,19 +281,26 @@ const updateUser = async (req, res) => {
                 message: error.details[0].message
             })
         }
-        const { name, telefone, password, currentPassword } = value;
-        const user = await User.findById({ _id: req.id })
-        
+        const { name, telefone} = value;
+        const user = await User.findById({ _id: payload.id })
+
+        if(!user){
+            console.log(user, "usuario nao econtrado!")
+            return res.status(404).json({
+                status: false,
+                message: "usario nao encontrado"
+            })
+        }
         if (name) user.name = name.trim();
         if (telefone) user.telefone = telefone.trim();
 
-        // 6. Salva as alterações
+        // Salva as alterações
         await user.save();
 
         return res.json({ message: 'Dados atualizado com sucesso!' });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ message: 'Erro ao atualizar perfil.' });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
     }
     
 }
