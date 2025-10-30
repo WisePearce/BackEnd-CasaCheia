@@ -4,6 +4,7 @@ import updateSchema from "../config/updateSchema.js"
 import { passwordVerification, hash_password } from "../config/passwordHash.js"
 import jwt from "jsonwebtoken"
 import Token from "../models/tokenModel.js"
+import changePassword from "../config/changePassword.js"
 
 import authenticateToken from "../middlewares/authMiddleware.js"
 import dotenv from "dotenv"
@@ -123,7 +124,6 @@ const login = async (req, res) => {
                 message: "telefone ou password incorreta!"
             })
         }
-
 
         //dados do ususario correto, ele vai ser autenticado gerando um token !
         const token = jwt.sign(
@@ -281,10 +281,10 @@ const updateUser = async (req, res) => {
                 message: error.details[0].message
             })
         }
-        const { name, telefone} = value;
+        const { name, telefone } = value; changePassword
         const user = await User.findById({ _id: payload.id })
 
-        if(!user){
+        if (!user) {
             console.log(user, "usuario nao econtrado!")
             return res.status(404).json({
                 status: false,
@@ -302,11 +302,69 @@ const updateUser = async (req, res) => {
         console.log(error.message);
         return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
     }
-    
+
 }
 const updatePassword = async (req, res) => {
-    
+    try {
+        const payload = req.user
+        const { newPassword, currentPassword } = req.body
+
+        //validar os campos
+
+        const { error, value } = changePassword.validate({ newPassword, currentPassword })
+
+        if (error) {
+            console.log(error)
+            return res.status(400).json({
+                status: false,
+                message: error.details[0].message
+            })
+        }
+
+
+        const userFounded = await User.findById(payload.id)
+        console.log(userFounded)
+
+        if (!userFounded) {
+            console.log(userFounded)
+            return res.status(404).json({
+                status: false,
+                message: "dados nao encontrado"
+            })
+        }
+
+        //verificar a password
+        const passwordMatch = await passwordVerification(userFounded.password, currentPassword)
+
+        console.log("teste: ",passwordMatch)
+
+        if(!passwordMatch){
+            console.log("password atual incorreta")
+            return res.status(401).json({
+                status: false,
+                message: "sua senha atual esta incorreta"
+            })
+        }
+
+        //adicionado a nova password no user
+        userFounded.password = newPassword
+        //salvar nova senha no banco de dados
+        await userFounded.save()
+
+        return res.status(200).json({
+            status: true,
+            message: "password atualizada com sucesso!"
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            status: false,
+            message: "erro interno no servidor"
+        })
+    }
+
 }
 
 
-export { register, login, refreshToken, logout, profile, updateUser }
+export { register, login, refreshToken, logout, profile, updateUser, updatePassword }
