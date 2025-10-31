@@ -19,6 +19,7 @@ const asyncUpload = (uploadMiddleware) => {
             message: "arquivo muito grande! limite maximo deve ser 5MB"
           })
         }
+        console.log(error)
         return res.status(400).json({
           status: false,
           message: "Erro no upload de imagens. || "+error.message 
