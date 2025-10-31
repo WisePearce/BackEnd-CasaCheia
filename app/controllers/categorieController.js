@@ -8,15 +8,6 @@ dotenv.config()
 //Criar nova categoria
 export const createCategorie = async (req, resp) => {
     try {
-        const image = req.file ? process.env.NODE_ENV === "production" ? req.file.path : req.file.filename : null
-
-        console.log("Imagem recebida no controller:", req.file); // Log para verificar a imagem recebida   
-        if (image == '' || image == null) {
-            return resp.status(400).json({
-                status: false,
-                message: "A imagem da categoria é obrigatória."
-            });
-        }
         const { name, description } = req.body
         //verificar se ja existe uma categoria com esse nome
         const categorieExists = await categorySchema.findOne({ name });
@@ -40,7 +31,7 @@ export const createCategorie = async (req, resp) => {
 
         //Os dados estao limpos entao, bora cadastrar
 
-        const categorie = await categorySchema.create({ name, description, image });
+        const categorie = await categorySchema.create({ name, description});
 
         return resp.status(201).json({
             status: true,
@@ -101,16 +92,6 @@ export const updateCategorie = async (req, resp) => {
     try {
         const { id } = req.params;
 
-        const image = req.file ? process.env.NODE_ENV === "production" ? req.file.path : req.file.filename : null
-
-        console.log("Imagem recebida no controller:", req.file); // Log para verificar a imagem recebida   
-        if (image == '' || image == null) {
-            return resp.status(400).json({
-                status: false,
-                message: "A imagem da categoria é obrigatória."
-            });
-        }
-
         const dados = await categorySchema.findById({ _id: id });
 
         if (!dados) {
@@ -131,16 +112,7 @@ export const updateCategorie = async (req, resp) => {
         }
         if (value.name !== undefined) dados.name = value.name
         if (value.description !== undefined) dados.description = value.description
-
-        if (image == null) {
-            const updateCategorie = await dados.save();
-            return resp.status(200).json({
-                status: true,
-                message: "Categoria atualizada com sucesso!",
-                dados: updateCategorie
-            });
-        }
-        dados.image = image
+        
         await dados.save();
         return resp.status(200).json({
             status: true,
