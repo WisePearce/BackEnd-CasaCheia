@@ -10,11 +10,11 @@ const routes = express.Router()
 //routes.get('/products/pagination', productPaginaction)
 routes.get('/products/pagination', productPaginaction)
 
-//routes para cadastrar produtos
-routes.post('/products', authenticateToken, asyncUpload(upload.array('images', 4)), createProduct)
+//routes para cadastrar produtos authenticateToken,
+routes.post('/products',  asyncUpload(upload.array('images', 4)), createProduct)
 
-//routes para atualizar produtos
-routes.patch('/products/:id', authenticateToken, asyncUpload(upload.array('images', 4)), updateProduct)    
+//routes para atualizar produtos authenticateToken,j
+routes.patch('/products/:id',  asyncUpload(upload.array('images', 4)), updateProduct)    
 
 //routes para buscar um produto pelo nome
 routes.get('/products/search', searchProduct)
