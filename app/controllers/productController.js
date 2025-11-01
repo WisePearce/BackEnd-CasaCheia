@@ -98,18 +98,18 @@ const createProduct = async (req, res) => {
 }
 const showAll = async (req, res) => {
     try {
-        const page = parseInt(req.query.page) ||  1
+        const page = parseInt(req.query.page) || 1
         const limit = parseInt(req.query.limit) || 10
         //console.log("pagina ", page, " limite ", limit)
         //process.exit()
 
-        const skip = ( page - 1 ) * limit
+        const skip = (page - 1) * limit
 
         const allProducts = await productSchema.find()
-        .skip()
-        .limit(limit)
-        
-        const formatted = allProducts.map( p =>  ({
+            .skip()
+            .limit(limit)
+
+        const formatted = allProducts.map(p => ({
             ...p.toObject(),
             price: parseFloat(p.price.toString())
         }))
@@ -121,7 +121,7 @@ const showAll = async (req, res) => {
                 message: "Nenhum Produto encontrado!"
             })
         }
-        const total = Math.ceil( totalProducts / limit )
+        const total = Math.ceil(totalProducts / limit)
         return res.status(200).json({
             formatted,
             pagina_atual: page,
@@ -275,10 +275,15 @@ const productPaginaction = async (req, res) => {
             .skip((page - 1) * limit)
             .exec();
 
+        const formatted = products.map(p => ({
+            ...p.toObject(),
+            price: parseFloat(p.price.toString())
+        }))
+
         const count = await productSchema.countDocuments();
 
         res.status(200).json({
-            products,
+            formatted,
             totalPages: Math.ceil(count / limit),
             currentPage: page
         });
