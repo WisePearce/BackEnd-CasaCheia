@@ -111,7 +111,7 @@ const showAll = async (req, res) => {
         
         const formatted = allProducts.map( p =>  ({
             ...p.toObject(),
-            price: parceFloat(p.price.toString())
+            price: parseFloat(p.price.toString())
         }))
         const totalProducts = await productSchema.countDocuments()
 
@@ -122,7 +122,6 @@ const showAll = async (req, res) => {
             })
         }
         const total = Math.ceil( totalProducts / limit )
-
         return res.status(200).json({
             formatted,
             pagina_atual: page,
@@ -130,6 +129,7 @@ const showAll = async (req, res) => {
             total_produtos: totalProducts
         })
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             status: false,
             message: error
