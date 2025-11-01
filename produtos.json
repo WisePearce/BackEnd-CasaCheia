@@ -1,0 +1,35 @@
+{
+            "name": "Sabonete Neutro",
+            "price": 3.00,
+            "description": "Sabonete suave para todos os tipos de pele.",
+            "stock": 400,
+            "category": "6904de0e2195ccf3cdb1a116"
+        },
+        {
+            "name": "Shampoo Hidratante",
+            "price": 12.90,
+            "description": "Shampoo com ingredientes naturais que hidratam os fios.",
+            "stock": 180,
+            "category": "6904de0e2195ccf3cdb1a116"
+        },
+        {
+            "name": "Pasta de Dente",
+            "price": 5.20,
+            "description": "Creme dental com flúor para limpeza e proteção dos dentes.",
+            "stock": 250,
+            "category": "6904de0e2195ccf3cdb1a116"
+        },
+        {
+            "name": "Desodorizante Roll-on",
+            "price": 10.50,
+            "description": "Desodorante antitranspirante com proteção de 48 horas.",
+            "stock": 160,
+            "category": "6904de0e2195ccf3cdb1a116"
+        },
+        {
+            "name": "Papel Higiênico",
+            "price": 14.90,
+            "description": "Papel higiênico suave e resistente.",
+            "stock": 220,
+            "category": "6904de0e2195ccf3cdb1a116"
+        }
