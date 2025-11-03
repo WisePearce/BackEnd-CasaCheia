@@ -173,7 +173,6 @@ const login = async (req, res) => {
         })
     }
 }
-
 const refreshToken = async (req, res) => {
     const refreshToken = req.body.token;
 
@@ -220,7 +219,6 @@ const refreshToken = async (req, res) => {
         });
     }
 };
-
 const logout = async (req, res) => {
 
     try {
@@ -245,7 +243,6 @@ const logout = async (req, res) => {
         })
     }
 }
-
 const profile = async (req, res) => {
     try {
 
@@ -265,7 +262,6 @@ const profile = async (req, res) => {
         })
     }
 }
-
 const updateUser = async (req, res) => {
     try {
         const dados = req.body
@@ -321,7 +317,6 @@ const updatePassword = async (req, res) => {
             })
         }
 
-
         const userFounded = await User.findById(payload.id)
         console.log(userFounded)
 
@@ -363,8 +358,6 @@ const updatePassword = async (req, res) => {
             message: "erro interno no servidor"
         })
     }
-
 }
-
 
 export { register, login, refreshToken, logout, profile, updateUser, updatePassword }

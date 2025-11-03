@@ -9,9 +9,7 @@ const hash_password = async(password) => {
         console.log(error)
     }
 }
-
 const passwordVerification = async(hash, password) => {
     return argon2.verify(hash, password)
 }
-
 export  {hash_password, passwordVerification}
