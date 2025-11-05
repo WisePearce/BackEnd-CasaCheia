@@ -3,8 +3,10 @@ import cors from "cors"
 import {signin, loginUser, logoutUser, profileUser, update, password} from "./routes/authRoutes.js"
 import helmet from "helmet"
 import productRoutes from "./routes/productsRoutes.js"
+import cartRoutes from "./routes/cartRoutes.js"
 import categorieRoutes from "./routes/categorieRoutes.js";
 import dotenv from "dotenv"
+import cartRouter from "./routes/cartRoutes.js";
 
 const app = express()
 dotenv.config()
@@ -26,6 +28,10 @@ app.use('/api.casacheia', password)
 
 //routes para produtos
 app.use('/api.casacheia', productRoutes);
+
+//routes para carrinho
+
+app.use('/api.casacheia', cartRouter)
 
 //rote para categorias
 app.use('/api.casacheia', categorieRoutes);
