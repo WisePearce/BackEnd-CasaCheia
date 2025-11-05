@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import User from '../models/userModel.js'
-import Product from '../models/productModel.js'
+import product from '../models/productModel.js'
 
 const cartSchema = new mongoose.Schema({
     user: {
@@ -12,7 +12,7 @@ const cartSchema = new mongoose.Schema({
     items: [{
         product: {                   // Nome mais claro
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
+            ref: 'product',
             required: true,
         },
         quantity: {
@@ -25,16 +25,10 @@ const cartSchema = new mongoose.Schema({
             type: Number,
             required: true,
             min: [0, 'Preço não pode ser negativo'],
-        },
-        subtotal: {                  // Pré-calculado
-            type: Number,
-            required: true,
-            min: 0,
-        },
+        }
     }],
     totalAmount: {                 // Nome mais claro que "bill"
         type: Number,
-        required: true,
         default: 0,
         min: 0,
     },
@@ -49,8 +43,8 @@ cartSchema.index({ user: 1 }, { unique: true });
 
 // Middleware: recalcula total sempre
 cartSchema.pre('save', function (next) {
-    this.totalAmount = this.items.reduce((sum, item) => sum + item.subtotal, 0);
+    this.totalAmount = this.items.reduce((sum, item) => sum + (item.priceAtAdd * item.quantity), 0);
     next();
 });
 
-module.exports = mongoose.model('Cart', cartSchema);
+export default mongoose.model('Cart', cartSchema);

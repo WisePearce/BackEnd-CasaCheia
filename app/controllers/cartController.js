@@ -1,20 +1,36 @@
 import Cart from '../models/cartModel.js'
-import Product from '../models/productModel.js'
+import product from '../models/productModel.js'
+import mongoose from 'mongoose'
 
 const addToCart = async (req, res) => {
     try {
-        const userId = req.user._id;
+        const userId = req.user.id
         const { productId, quantity } = req.body
-        const product = await productModel.findById(productId)
-        if(!product) {
-            console.log('Product not found ', productId)
+        if( productId === undefined && quantity === undefined ) {
+            console.log(req.body)
+            return res.status(400).json({
+                status: false,
+                message: 'por favor adicione produto com quantidade no seu carrinho'
+            })
+        }
+        if(!(mongoose.Types.ObjectId.isValid(productId))) {
+            console.log("id de producto invalido")
+            return res.status(400).json({
+                status: false,
+                message: 'id do producto invalido'
+            })
+        }
+        const verifyProduct = await product.findById(productId)
+        console.log(verifyProduct)
+        if(!verifyProduct) {
+            console.log('produto nao encontrado!', productId)
             return res.status(404).json({
                 status: false,
                 message: "produto nao encontrado!"
             })
         }
-        if(product.stock < quantity){
-            console.log("stock insuficiente ", product.stock)
+        if(verifyProduct.stock < quantity){
+            console.log("stock insuficiente ", verifyProduct.stock)
             return res.status(400).json({
                 status: false,
                 message: "Estoque insuficiente",
@@ -26,21 +42,20 @@ const addToCart = async (req, res) => {
             cart = new Cart({user: userId, items: []})
         }
 
-        const existingCart = cart.items.find( i => i.product.toString() === productId)
-        if(existingCart){
-            existingCart.quantity += quantity
-            existingCart.subtotal = existingCart.priceAtAdd * existingCart.quantity
+        const existingCart = cart.items.findIndex( item => item.product.toString() === productId)
+
+        if(existingCart > -1){
+            cart.items[existingCart].quantity += quantity
         } else {
             cart.items.push({
-                productId,
-                quantity,
-                priceAtAdd: product.price,
-                subtotal: product.price * quantity,
+                product: productId,
+                quantity: quantity,
+                priceAtAdd: verifyProduct.price
             })
         }
 
         await cart.save()
-        await cart.populate('items.products')
+        await cart.populate('items.product')
         return res.status(200).json({
             status: true,
             carrinho: cart
@@ -52,4 +67,45 @@ const addToCart = async (req, res) => {
             message: "erro interno no servidor! entre em contacto com o suporte."
         })
     }
+}
+
+const getCart = async (req, res) => {
+    try {
+        const id = req.user.id
+        const cart = await Cart.find({ user:id })
+        if(cart.length < 1){
+            return res.status(404).json({
+                status: false,
+                message: "Seu carrinho esta vazio!"
+            })
+        }
+        return res.status(200).json({
+            status: true,
+            carrinho: cart
+        })
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            status: false,
+            message: "erro interno no servidor!"
+        })
+    }
+}
+const removeCart = async (req, res) => {
+    const id = req.user._id
+    const productId = req.params.productId
+    const cart = await Cart.findById({ user: id })
+    if(!cart){
+        return res.status(404).json({
+            status: false,
+            message: "produto nao encontrado!"
+        })
+    }
+
+}
+export {
+    addToCart,
+    getCart,
+    //removeCart
 }
