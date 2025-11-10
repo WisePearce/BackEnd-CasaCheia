@@ -46,7 +46,7 @@ const register = async (req, resp) => {
                 role: user.role
             },
             process.env.JWT_KEY,
-            { expiresIn: '90min' }
+            { expiresIn: '4h' }
         )
 
         //gerar o refresh token para o cliente (user) e salvar no banco de dados
@@ -133,7 +133,7 @@ const login = async (req, res) => {
                 role: verifyUser.role
             },
             process.env.JWT_KEY,
-            { expiresIn: '50min' }
+            { expiresIn: '4h' }
         )
         //gerar o refresh token para o cliente (user) e salvar no banco de dados
         const userRefreshToken = jwt.sign(

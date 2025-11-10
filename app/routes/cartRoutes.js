@@ -1,4 +1,4 @@
-import { addToCart, getCart } from "../controllers/cartController.js";
+import { addToCart, getCart, removeCart } from "../controllers/cartController.js";
 import express from 'express'
 import authenticateTokenProfile from "../middlewares/authProfileMiddleware.js";
 
@@ -12,6 +12,6 @@ router.get('/cart', authenticateTokenProfile, getCart)
 router.post('/cart', authenticateTokenProfile, addToCart)
 
 //remover produtos do carrinho
-//router.delete('/cart', authMiddleware, removeCart)
+router.delete('/cart', authenticateTokenProfile, removeCart)
 const cartRouter = router
 export default cartRouter
