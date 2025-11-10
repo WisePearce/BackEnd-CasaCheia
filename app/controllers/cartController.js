@@ -5,61 +5,64 @@ import mongoose from 'mongoose'
 const addToCart = async (req, res) => {
     try {
         const userId = req.user.id
-        const { productId, quantity } = req.body
-        if( productId === undefined && quantity === undefined ) {
-            console.log(req.body)
+        const { items } = req.body
+        if( Array.isArray(items) && items.length === 0 ) {
+            console.log(items)
             return res.status(400).json({
                 status: false,
-                message: 'por favor adicione produto com quantidade no seu carrinho'
+                message: 'Produtos invalidos'
             })
         }
-        if(!(mongoose.Types.ObjectId.isValid(productId))) {
-            console.log("id de producto invalido")
-            return res.status(400).json({
-                status: false,
-                message: 'id do producto invalido'
-            })
-        }
-        const verifyProduct = await product.findById(productId)
-        console.log(verifyProduct)
-        if(!verifyProduct) {
-            console.log('produto nao encontrado!', productId)
-            return res.status(404).json({
-                status: false,
-                message: "produto nao encontrado!"
-            })
-        }
-        if(verifyProduct.stock < quantity){
-            console.log("stock insuficiente ", verifyProduct.stock)
-            return res.status(400).json({
-                status: false,
-                message: "Estoque insuficiente",
+        //process.exit()
+        for ( const { productId, quantity } of items){
+            if(!(mongoose.Types.ObjectId.isValid(productId))){
+                    console.log("id de producto invalido")
+                    return res.status(400).json({
+                        status: false,
+                        message: 'id do producto invalido',
+                        product: productId
+                    })
+            }
+            const verifyProduct = await product.findById(productId)
+            console.log(verifyProduct)
+            if(!verifyProduct) {
+                console.log('produto nao encontrado!', productId)
+                return res.status(404).json({
+                    status: false,
+                    message: "produto nao encontrado!"
+                })
+            }
+            if(verifyProduct.stock < quantity){
+                console.log("stock insuficiente ", verifyProduct.stock)
+                return res.status(400).json({
+                    status: false,
+                    message: "Estoque insuficiente",
+                })
+            }
+            let cart = await Cart.findOne({ user: userId })
+            if(!cart){
+                cart = new Cart({user: userId, items: []})
+            }
+
+            const existingCart = cart.items.findIndex( item => item.product.toString() === productId)
+
+            if(existingCart > -1){
+                cart.items[existingCart].quantity += quantity
+            } else {
+                cart.items.push({
+                    product: productId,
+                    quantity: quantity,
+                    priceAtAdd: verifyProduct.price
+                })
+            }
+            await cart.save()
+            await cart.populate('items.product')
+            return res.status(200).json({
+                status: true,
+                message: "novo produto adicionado",
             })
         }
 
-        let cart = await Cart.findOne({ user: userId })
-        if(!cart){
-            cart = new Cart({user: userId, items: []})
-        }
-
-        const existingCart = cart.items.findIndex( item => item.product.toString() === productId)
-
-        if(existingCart > -1){
-            cart.items[existingCart].quantity += quantity
-        } else {
-            cart.items.push({
-                product: productId,
-                quantity: quantity,
-                priceAtAdd: verifyProduct.price
-            })
-        }
-
-        await cart.save()
-        await cart.populate('items.product')
-        return res.status(200).json({
-            status: true,
-            carrinho: cart
-        })
     } catch (error) {
         console.log(error)
         return res.status(500).json({
