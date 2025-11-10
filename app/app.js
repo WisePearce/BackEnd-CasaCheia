@@ -30,7 +30,6 @@ app.use('/api.casacheia', password)
 app.use('/api.casacheia', productRoutes);
 
 //routes para carrinho
-
 app.use('/api.casacheia', cartRouter)
 
 //rote para categorias

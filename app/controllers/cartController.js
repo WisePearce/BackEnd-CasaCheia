@@ -96,19 +96,62 @@ const getCart = async (req, res) => {
     }
 }
 const removeCart = async (req, res) => {
-    const id = req.user._id
-    const productId = req.params.productId
-    const cart = await Cart.findById({ user: id })
-    if(!cart){
-        return res.status(404).json({
+    try {
+        const userId = req.user.id
+        const { items } = req.body
+
+        if( Array.isArray(items) && items.length === 0 ) {
+            console.log(items)
+            return res.status(400).json({
+                status: false,
+                message: 'Produtos invalidos'
+            })
+        }
+        for ( const { productId, quantity } of items){
+            if(!(mongoose.Types.ObjectId.isValid(productId))){
+                console.log("id de producto invalido")
+                return res.status(400).json({
+                    status: false,
+                    message: 'id do producto invalido',
+                    product: productId
+                })
+            }
+            let cart = await Cart.findOne({ user:userId })
+
+            if(cart.length < 1){
+                return res.status(404).json({
+                    status: false,
+                    message: "Seu carrinho esta vazio!"
+                })
+            }
+            const existingProduct = cart.items.findIndex( item => item.product.toString() === productId)
+            console.log(`producto encontrado: ${existingProduct}`)
+            if(!(existingProduct > -1 && cart.items[existingProduct].quantity >= quantity) ){
+                console.log(`quantidade encontrado: ${cart[0].items[existingProduct].quantity}`)
+                return res.status(400).json({
+                    status: false,
+                    message: 'quantidade insuficiente'
+                })
+            }
+            cart.items[existingProduct].quantity -= quantity
+            await cart.save()
+            await cart.populate('items.product')
+            return res.status(200).json({
+                status: true,
+                message: "produto reduzido",
+            })
+        }
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
             status: false,
-            message: "produto nao encontrado!"
+            message: "erro interno no servidor! entre em contacto com o suporte."
         })
     }
-
 }
 export {
     addToCart,
     getCart,
-    //removeCart
+    removeCart
 }
