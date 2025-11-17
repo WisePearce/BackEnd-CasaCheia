@@ -1,7 +1,7 @@
-// src/controllers/order.controller.js
 import Order from '../models/orderModel.js';
 import ItemsOrder from '../models/itemOrderModel.js';
 import Cart from '../models/cartModel.js';
+import mongoose from 'mongoose'
 import Product from '../models/productModel.js';
 //import ShippingAddress from '../models/shippingAdressModel.js';
 //import PaymentMethod from '../models/paymentMethodModel.js';
@@ -11,13 +11,16 @@ import Joi from 'joi';
  *  Cria um novo pedido e os seus itens
  */
 const createOrder = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    console.log(session)
-    process.exit()
-    const userId = req.user._id
-
     try {
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        const userId = req.user.id
+        if (!userId) {
+            return res.status(404).send({
+                status: false,
+                message: 'usuario nao econtrado'
+            })
+        }
         const { items, shippingAddress, discount = 0, paymentMethod } = req.body;
 
         if (!items || !Array.isArray(items) || items.length === 0) {

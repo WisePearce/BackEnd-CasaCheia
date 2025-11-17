@@ -5,8 +5,8 @@ import express from 'express'
 //router
 const router  = express.Router()
 
-//get order
-router.get('/order', authenticateTokenProfile)
+//create order
+router.post('/order', authenticateTokenProfile, createOrder)
 
 //export router
 const orderRouter = router
