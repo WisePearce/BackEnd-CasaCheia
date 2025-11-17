@@ -93,20 +93,26 @@ const register = async (req, resp) => {
 
 const login = async (req, res) => {
     try {
-        const dados = req.body
-
+        const data = req.body
+        if(data === undefined) {
+            console.log(`erro nos campos para fazer login ${data}`)
+            return res.status(400).json({
+                status: false,
+                message: "define os campos telefone e password de forma correta!!!"
+            })
+        }
         //validar os campos telefone e password
-        const { error, value } = telefonePasswordValidation.validate(dados)
+        const { error, value } = telefonePasswordValidation.validate(data)
+        console.log(value)
         if (error) {
-
+            console.log(error.details[0].message)
             return res.status(400).json({
                 status: false,
                 message: error.details[0].message
             })
         }
-
         //ver se o usuario ja existe
-        const telefone = dados.telefone
+        const telefone = data.telefone
         const verifyUser = await User.findOne({ telefone: telefone })
         if (!verifyUser) {
             return res.status(404).json({
@@ -117,7 +123,7 @@ const login = async (req, res) => {
 
         //verificar se as passwords batem certo
         const hash = verifyUser.password
-        const isMatch = await passwordVerification(hash, dados.password)
+        const isMatch = await passwordVerification(hash, data.password)
         if (!isMatch) {
             return res.status(401).json({
                 status: false,
