@@ -1,19 +1,17 @@
-import Order from '../models/orderModel.js';
-import ItemsOrder from '../models/itemOrderModel.js';
-import Cart from '../models/cartModel.js';
+import Order from '../models/orderModel.js'
+import itemsOrder from '../models/itemOrderModel.js'
+import Cart from '../models/cartModel.js'
 import mongoose from 'mongoose'
-import Product from '../models/productModel.js';
-//import ShippingAddress from '../models/shippingAdressModel.js';
-//import PaymentMethod from '../models/paymentMethodModel.js';
-import Joi from 'joi';
+import Product from '../models/productModel.js'
+import shippingAdressSchema from "../config/validations/shippingAdress.js"
+import paymentMethodSchema from "../config/validations/paymentMethod.js"
+import Joi from 'joi'
 
 /**
  *  Cria um novo pedido e os seus itens
  */
 const createOrder = async (req, res) => {
     try {
-        const session = await mongoose.startSession();
-        session.startTransaction();
         const userId = req.user.id
         if (!userId) {
             return res.status(404).send({
@@ -21,12 +19,69 @@ const createOrder = async (req, res) => {
                 message: 'usuario nao econtrado'
             })
         }
-        const { items, shippingAddress, discount = 0, paymentMethod } = req.body;
-
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            throw new Error('O pedido deve conter pelo menos um item.');
+        const userOrder = req.body;
+        if ( userOrder === undefined) {
+            console.log(`erro de pedido ${userOrder}`)
+            return res.status(400).json({
+                status: false,
+                message: "verifique os dados se foram bem informados"
+            })
         }
 
+        //verificar o endereco de entrega
+        if ( userOrder.shippingAddress === undefined ) {
+            console.log(`endereco de entrega nao informado ${userOrder.shippingAddress}`)
+            return res.status(400).json({
+                status: false,
+                message: "verifique o endereco de entrega"
+            })
+        }
+
+        //verificar o metodo de pagamento
+        if ( userOrder.paymentMethod === undefined ) {
+            console.log(`erro de metodo pagamento ${userOrder.paymentMethod}`)
+            return res.status(400).json({
+                status: false,
+                message: "informe o metodo de pagamento!!!"
+            })
+        }
+
+        //validacao dos campos do endereco
+        let { error, value} = shippingAdressSchema.validate(userOrder.shippingAddress)
+        if(error){
+            console.log(error)
+            return res.status(400).json({
+                status: false,
+                message: error.details[0].message
+            })
+        }
+
+        console.log(value)
+
+        //validacao dos campos do metodo de pagamento!!
+        const validatePaymentSchema = paymentMethodSchema.validate(userOrder.paymentMethod)
+        if(validatePaymentSchema.error) {
+            console.log(validatePaymentSchema.error)
+            return res.status(400).json({
+                status: false,
+                message: validatePaymentSchema.error.details[0].message
+            })
+        }
+        console.log(validatePaymentSchema.value)
+
+        //buscar carrinho do usuario com seus produtos para fazer o pedido
+        const existsCart = await Cart.findOne({ user: userId })
+
+        if (!existsCart) {
+            return res.status(404).send({
+                status: false,
+                message: 'carrinho vazio'
+            })
+        }
+
+        //pegar todas informacaes do carrinho
+        const {_id, user, items, totalAmount } = existsCart
+        //console.log(existsCart)
         // Calcula subtotal e total
         let subtotal = 0;
         for (const item of items) {
@@ -34,24 +89,29 @@ const createOrder = async (req, res) => {
             if (!product) throw new Error(`Produto ${item.product} não encontrado.`);
             subtotal += product.price * item.quantity;
         }
+        //verificar o desconto
+        let total
+        if( !(userOrder.discount === undefined) ) {
+            total = subtotal - userOrder.discount;
+        }
 
-        const total = subtotal - discount;
-
+        total = subtotal
         // Gera número de pedido único
-        const orderNumber = `ORD-${Date.now()}`;
+        const orderNumber = `ORN-${Date.now()}`
 
         // Cria o pedido
-        const order = await Order.create([{
+        const order = await Order.create({
             orderNumber,
             userId,
-            shippingAddress,
-            discount,
-            subtotal,
-            total,
-            paymentMethod,
+            shippingAddress: userOrder.shippingAddress,
+            discount: userOrder.discount,
+            subtotal: subtotal,
+            total: total,
+            paymentMethod: userOrder.paymentMethod,
             status: 'pending'
-        }], { session });
-
+        });
+        console.log(order)
+        process.exit()
         // Cria os itens associados
         const orderItems = items.map(i => ({
             order: order[0]._id,
@@ -61,19 +121,15 @@ const createOrder = async (req, res) => {
             quantity: i.quantity
         }));
 
-        await ItemsOrder.insertMany(orderItems, { session });
-
-        await session.commitTransaction();
-        session.endSession();
-
+        const itemssevad = await itemsOrder.insertMany(orderItems);
+        console.log(`teste: ${itemssevad}`);
+        process.exit()
         return res.status(201).json({
             message: 'Pedido criado com sucesso.',
             order: order[0]
         });
 
     } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
         console.error('Erro ao criar pedido:', error.message);
         return res.status(500).json({
             status: false,

@@ -16,4 +16,4 @@ const itemsOderSchema = new mongoose.Schema({
     quantity: { type: Number, required: true },
 }, { timestamps: true });
 
-export default mongoose.model('orderItem', itemsOderSchema)
+export default mongoose.model('itemsOrder', itemsOderSchema)
