@@ -7,6 +7,7 @@ import cartRoutes from "./routes/cartRoutes.js"
 import categorieRoutes from "./routes/categorieRoutes.js";
 import dotenv from "dotenv"
 import cartRouter from "./routes/cartRoutes.js";
+import orderRouter from "./routes/orderRouter.js";
 
 const app = express()
 dotenv.config()
@@ -18,22 +19,25 @@ app.use(cors())
 
 //endereco base: http://localhost:3000/api/v1/supdate
 //routes para usuario
-app.use('/api.casacheia/auth', signin)
-app.use('/api.casacheia/auth', loginUser)
-app.use('/api.casacheia/auth', logoutUser)
-app.use('/api.casacheia', profileUser)
-app.use('/api.casacheia', update)
-app.use('/api.casacheia', password)
+app.use('/api/auth', signin)
+app.use('/api/auth', loginUser)
+app.use('/api/auth', logoutUser)
+app.use('/api', profileUser)
+app.use('/api', update)
+app.use('/api', password)
 
 
 //routes para produtos
-app.use('/api.casacheia', productRoutes);
+app.use('/api', productRoutes);
 
 //routes para carrinho
-app.use('/api.casacheia', cartRouter)
+app.use('/api', cartRouter)
 
 //rote para categorias
-app.use('/api.casacheia', categorieRoutes);
+app.use('/api', categorieRoutes);
+
+//routes para order (pedidos)
+app.use('/api', orderRouter)
 
 //rota index
 app.get('/', (req, res) => {
