@@ -2,10 +2,14 @@ import mongoose from 'mongoose'
 import UserModel from "./userModel.js";
 
 const shippingSchema = new mongoose.Schema({
-    name: {
+    city: {
         type: String,
         required: true,
         unique: true,
+    },
+    cordenadas: {
+        type: String,
+        required: true
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
