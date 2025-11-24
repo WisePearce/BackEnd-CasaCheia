@@ -4,7 +4,22 @@ import authenticateToken from "../middlewares/authMiddleware.js"
 import authenticateTokenProfile from "../middlewares/authProfileMiddleware.js"
 
 const route = Router()
-
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Obtém um usuário pelo ID
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuário encontrado
+ */
 const signin = route.post('/signup', register)
 const loginUser = route.post('/signin', login)
 const logoutUser = route.post('/logout', authenticateToken, logout)
