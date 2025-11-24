@@ -1,5 +1,6 @@
 import express from "express"
 import cors from "cors"
+import { swaggerUi, swaggerSpec } from '../swegger.js' 
 import {signin, loginUser, logoutUser, profileUser, update, password} from "./routes/authRoutes.js"
 import helmet from "helmet"
 import productRoutes from "./routes/productsRoutes.js"
@@ -17,7 +18,7 @@ app.use(express.urlencoded({ extended: true}))
 app.use(helmet())
 app.use(cors())
 
-//endereco base: http://localhost:3000/api/v1/supdate
+//endereco base: http://localhost:3000/api/
 //routes para usuario
 app.use('/api/auth', signin)
 app.use('/api/auth', loginUser)
@@ -38,6 +39,9 @@ app.use('/api', categorieRoutes);
 
 //routes para order (pedidos)
 app.use('/api', orderRouter)
+
+//api documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 //rota index
 app.get('/', (req, res) => {
