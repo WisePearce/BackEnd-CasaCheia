@@ -7,9 +7,7 @@ import shippingAdressSchema from "../config/validations/shippingAdress.js"
 import paymentMethodSchema from "../config/validations/paymentMethod.js"
 import Joi from 'joi'
 
-/**
- *  Cria um novo pedido e os seus itens
- */
+//Order -> pedido, fazer pedido
 const createOrder = async (req, res) => {
     try {
         const userId = req.user.id
@@ -19,17 +17,32 @@ const createOrder = async (req, res) => {
                 message: 'usuario nao econtrado'
             })
         }
-        const userOrder = req.body;
-        if ( userOrder === undefined) {
-            console.log(`erro de pedido ${userOrder}`)
-            return res.status(400).json({
+
+        //buscar carrinho do usuario com seus produtos para fazer o pedido
+        const existsCart = await Cart.findOne({ user: userId })
+        console.log(existsCart)
+        process.exit()
+
+        if (!existsCart) {
+            return res.status(404).send({
                 status: false,
-                message: "verifique os dados se foram bem informados"
+                message: 'carrinho vazio'
             })
         }
 
+        //pegar todas informacaes do carrinho
+        const { _id, user, items, totalAmount } = existsCart
+        //console.log(existsCart)
+        // Calcula subtotal e total
+        let subtotal = 0;
+        for (const item of items) {
+            const product = await Product.findById(item.product);
+            if (!product) throw new Error(`Produto ${item.product} não encontrado.`);
+            subtotal += product.price * item.quantity;
+        }
+
         //verificar o endereco de entrega
-        if ( userOrder.shippingAddress === undefined ) {
+        if (userOrder.shippingAddress === undefined) {
             console.log(`endereco de entrega nao informado ${userOrder.shippingAddress}`)
             return res.status(400).json({
                 status: false,
@@ -38,7 +51,7 @@ const createOrder = async (req, res) => {
         }
 
         //verificar o metodo de pagamento
-        if ( userOrder.paymentMethod === undefined ) {
+        if (userOrder.paymentMethod === undefined) {
             console.log(`erro de metodo pagamento ${userOrder.paymentMethod}`)
             return res.status(400).json({
                 status: false,
@@ -47,8 +60,8 @@ const createOrder = async (req, res) => {
         }
 
         //validacao dos campos do endereco
-        let { error, value} = shippingAdressSchema.validate(userOrder.shippingAddress)
-        if(error){
+        let { error, value } = shippingAdressSchema.validate(userOrder.shippingAddress)
+        if (error) {
             console.log(error)
             return res.status(400).json({
                 status: false,
@@ -60,7 +73,7 @@ const createOrder = async (req, res) => {
 
         //validacao dos campos do metodo de pagamento!!
         const validatePaymentSchema = paymentMethodSchema.validate(userOrder.paymentMethod)
-        if(validatePaymentSchema.error) {
+        if (validatePaymentSchema.error) {
             console.log(validatePaymentSchema.error)
             return res.status(400).json({
                 status: false,
@@ -69,29 +82,10 @@ const createOrder = async (req, res) => {
         }
         console.log(validatePaymentSchema.value)
 
-        //buscar carrinho do usuario com seus produtos para fazer o pedido
-        const existsCart = await Cart.findOne({ user: userId })
 
-        if (!existsCart) {
-            return res.status(404).send({
-                status: false,
-                message: 'carrinho vazio'
-            })
-        }
-
-        //pegar todas informacaes do carrinho
-        const {_id, user, items, totalAmount } = existsCart
-        //console.log(existsCart)
-        // Calcula subtotal e total
-        let subtotal = 0;
-        for (const item of items) {
-            const product = await Product.findById(item.product);
-            if (!product) throw new Error(`Produto ${item.product} não encontrado.`);
-            subtotal += product.price * item.quantity;
-        }
         //verificar o desconto
         let total
-        if( !(userOrder.discount === undefined) ) {
+        if (!(userOrder.discount === undefined)) {
             total = subtotal - userOrder.discount;
         }
 

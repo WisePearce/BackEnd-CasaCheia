@@ -9,6 +9,7 @@ import categorieRoutes from "./routes/categorieRoutes.js";
 import dotenv from "dotenv"
 import cartRouter from "./routes/cartRoutes.js";
 import orderRouter from "./routes/orderRouter.js";
+import orderItemsRouter from "./routes/itemOrderRouter.js";
 
 const app = express()
 dotenv.config()
@@ -39,6 +40,9 @@ app.use('/api', categorieRoutes);
 
 //routes para order (pedidos)
 app.use('/api', orderRouter)
+
+//router para OrderItems (items do pedido)
+app.use('/api', orderItemsRouter);
 
 //api documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
