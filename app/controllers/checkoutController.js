@@ -1,11 +1,15 @@
 import itemOrderModel from "../models/itemOrderModel.js";
 import orderModel from "../models/orderModel.js";
 import cartModel from "../models/cartModel.js";
-//import paymentMethodModel from "../models/paymentMethodModel.js";
+import mongoose from "mongoose";
 import shippingAddressSchema from "../config/validations/shippingAdress.js";
 import productModel from "../models/productModel.js";
 
 const checkOut = async (req, res) => {
+
+    //inciar a sessao
+    const session = await mongoose.startSession();
+
     //tipo de pagamento
     const payment = req.body.payment;
 
@@ -16,6 +20,9 @@ const checkOut = async (req, res) => {
     const {contactName, phoneNumber, street, city, coordinates} = req.body;
 
     try {
+
+        //iniciar a trasaction (Transacao)
+        session.startTransaction();
 
         if(payment==undefined || payment == ''){
             console.log(`payment: ${payment}`);
@@ -82,7 +89,7 @@ const checkOut = async (req, res) => {
             "total": totalAmount,
             "paymentMethod": payment,
             "status": "pending"
-        });
+        }, { session });
 
         if(!order){
             console.log(`resposta do pedido: ${order}`);
@@ -99,14 +106,17 @@ const checkOut = async (req, res) => {
                 "product": items.product,
                 "price": items.priceAtAdd,
                 "quantity": items.quantity
-            })
+            }, { session })
         }
 
         //limpar o carrinho
         cart.items = [];
         cart.totalAmount = 0;
 
-        await cart.save();
+        await cart.save({ session });
+
+        //confirmar toda transacao
+        await session.commitTransaction();
 
         return res.status(201).json({
             status: true,
@@ -117,11 +127,15 @@ const checkOut = async (req, res) => {
 
         
     } catch (error) {
+        await session.abortTransaction();
         console.log(error);
         return res.status(500).json({
             status: false,
             message: "Erro interno no servidor, Chame o suporte tecnico!"
         })
+    } finally {
+        //terminar a sessao
+        session.endSession();
     }
 }
 
