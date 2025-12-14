@@ -11,7 +11,7 @@ const itemsOrderSchema = new mongoose.Schema({
         ref: 'Product',
         required: true
     },
-    sku: { type: String, required: true },
+    sku: { type: String, required: false },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
 }, { timestamps: true });
