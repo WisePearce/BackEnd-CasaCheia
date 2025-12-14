@@ -34,9 +34,15 @@ const orderSchema = new mongoose.Schema({
         enum: ['pending', 'processing', 'shipped', 'delivered', 'canceled', 'refunded'],
         default: 'pending'
     },
+    /*
     paymentMethod: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'PaymentMethod'
+    },
+    */
+    paymentMethod: {
+        type: String,
+        required: true
     },
     shippedAt: { type: Date, default: null },
     deliveredAt: { type: Date, default: null }

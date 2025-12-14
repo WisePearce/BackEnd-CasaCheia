@@ -1,8 +1,9 @@
 import itemOrderModel from "../models/itemOrderModel.js";
 import orderModel from "../models/orderModel.js";
 import cartModel from "../models/cartModel.js";
-import paymentMethodModel from "../models/paymentMethodModel.js";
+//import paymentMethodModel from "../models/paymentMethodModel.js";
 import shippingAddressSchema from "../config/validations/shippingAdress.js";
+import productModel from "../models/productModel.js";
 
 const checkOut = async (req, res) => {
     //tipo de pagamento
@@ -18,7 +19,7 @@ const checkOut = async (req, res) => {
 
         if(payment==undefined || payment == ''){
             console.log(`payment: ${payment}`);
-            return res.status(402).json({
+            return res.status(400).json({
                 status: false,
                 message: "Precisa informar um metodo de pagamento"
             })
@@ -48,16 +49,15 @@ const checkOut = async (req, res) => {
 
         const cart = await cartModel.findOne({user: userId});
 
-        if(!cart){
+        if(cart.items.length == 0){
             console.log(`dados do carrinho: ${cart}`);
 
             return res.status(404).json({
                 status: false,
-                message: "Carrinho vazio ou nao eonctrado!"
+                message: "Carrinho vazio ou nao Encontrado!"
             })
         }
 
-        console.log(cart);
 
         //numero de pedido
         const random = Math.floor(100 + Math.random() * 900);
@@ -67,19 +67,55 @@ const checkOut = async (req, res) => {
         //totalAmount-> valor total dos produtos
 
         const { totalAmount } = cart;
-        console.log(`teste: ${totalAmount}`); 
 
-        const order = await orderModel.create([
-            orderNumber,
-            userId,
-            value,
-            {subtotal: totalAmount},
-            {total: totalAmount},
-            {paymentMethod: }
-        ]);
+        const order = await orderModel.create({
+            "orderNumber": orderNumber,
+            "user": userId,
+            "shippingAddress": {
+                "contactName": contactName,
+                "phoneNumber": phoneNumber, 
+                "street": street, 
+                "city": city, 
+                //"coordinates": coordinates
+            },
+            "subtotal": totalAmount,
+            "total": totalAmount,
+            "paymentMethod": payment,
+            "status": "pending"
+        });
 
+        if(!order){
+            console.log(`resposta do pedido: ${order}`);
 
+            return res.status(404).json({
+                status: false,
+                message: "Pedido mal Succedido!"
+            })
+        }
+        
+        for(const items of cart.items){
+            await itemOrderModel.create({
+                "order": order._id,
+                "product": items.product,
+                "price": items.priceAtAdd,
+                "quantity": items.quantity
+            })
+        }
 
+        //limpar o carrinho
+        cart.items = [];
+        cart.totalAmount = 0;
+
+        await cart.save();
+
+        return res.status(201).json({
+            status: true,
+            message: "Pedido bem Succedido!",
+            "Numero do Pedido": orderNumber,
+            "Id_Pedido": order._id
+        })
+
+        
     } catch (error) {
         console.log(error);
         return res.status(500).json({
