@@ -10,6 +10,7 @@ import dotenv from "dotenv"
 import cartRouter from "./routes/cartRoutes.js";
 import orderRouter from "./routes/orderRouter.js";
 import orderItemsRouter from "./routes/itemOrderRouter.js";
+import checkOutRouter from "./routes/checkOutRouter.js";
 
 const app = express()
 dotenv.config()
@@ -43,6 +44,10 @@ app.use('/api', orderRouter)
 
 //router para OrderItems (items do pedido)
 app.use('/api', orderItemsRouter);
+
+//router para checkOutRouter
+app.use('/api', checkOutRouter);
+
 
 //api documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
