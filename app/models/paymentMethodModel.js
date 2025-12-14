@@ -1,10 +1,15 @@
 import mongoose from 'mongoose';
 const paymentMethodSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     method: {
         type: String,
         required: true,
-        enum: ['cashOnDelivery', 'express'],
-        default: 'cashOnDelivery'
+        enum: ['tpa', 'express', 'transferencia'],
+        default: 'tpa'
     } ,
     status: {
         type: String,
@@ -17,6 +22,6 @@ const paymentMethodSchema = new mongoose.Schema({
         required: false,
         optional: true
     }
-}, { timestamps: true })
+}, { timestamps: true });
 
 export default mongoose.model('paymentMethod', paymentMethodSchema);
