@@ -1,4 +1,4 @@
-import categorySchema from "../models/categorieModel.js";
+import categorySchema from "../models/categoryModel.js";
 import { categoriesValidation } from "../config/validation.js"
 import path from "path";
 import dotenv from "dotenv";

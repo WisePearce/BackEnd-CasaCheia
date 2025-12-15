@@ -1,7 +1,7 @@
 import express from "express"
 import cors from "cors"
 import { swaggerUi, swaggerSpec } from '../swegger.js' 
-import {signin, loginUser, logoutUser, profileUser, update, password} from "./routes/authRoutes.js"
+import authRouter from "./routes/authRoutes.js"
 import helmet from "helmet"
 import productRoutes from "./routes/productsRoutes.js"
 import cartRoutes from "./routes/cartRoutes.js"
@@ -22,12 +22,9 @@ app.use(cors())
 
 //endereco base: http://localhost:3000/api/
 //routes para usuario
-app.use('/api/auth', signin)
-app.use('/api/auth', loginUser)
-app.use('/api/auth', logoutUser)
-app.use('/api', profileUser)
-app.use('/api', update)
-app.use('/api', password)
+app.use('/api/auth', authRouter)
+app.use('/api', authRouter)
+
 
 
 //routes para produtos
@@ -40,7 +37,7 @@ app.use('/api', cartRouter)
 app.use('/api', categorieRoutes);
 
 //routes para order (pedidos)
-app.use('/api', orderRouter)
+app.use('/api', orderRouter);
 
 //router para OrderItems (items do pedido)
 app.use('/api', orderItemsRouter);
