@@ -105,7 +105,7 @@ const getCart = async (req, res) => {
         try {
             const id = req.user.id
             const cart = await Cart.find({ user: id })
-            if (cart.length < 1) {
+            if (cart.length == 0) {
                 return res.status(404).json({
                     status: false,
                     message: "Seu carrinho esta vazio!"

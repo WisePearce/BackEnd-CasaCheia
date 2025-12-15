@@ -1,5 +1,5 @@
 import itemOrderModel from "../models/itemOrderModel.js";
-import orderModel from "../models/orderModel.js";
+import Order from "../models/orderModel.js";
 import cartModel from "../models/cartModel.js";
 import mongoose from "mongoose";
 import shippingAddressSchema from "../config/validations/shippingAdress.js";
@@ -31,7 +31,6 @@ const checkOut = async (req, res) => {
                 message: "Precisa informar um metodo de pagamento"
             })
         }
-        console.log(payment);
 
         //validar os campos de endereco de entrega
 
@@ -55,7 +54,6 @@ const checkOut = async (req, res) => {
         //buscar carrinho do cliente
 
         const cart = await cartModel.findOne({user: userId});
-
         if(cart.items.length == 0){
             console.log(`dados do carrinho: ${cart}`);
 
@@ -75,21 +73,24 @@ const checkOut = async (req, res) => {
 
         const { totalAmount } = cart;
 
-        const order = await orderModel.create({
-            "orderNumber": orderNumber,
-            "user": userId,
-            "shippingAddress": {
-                "contactName": contactName,
-                "phoneNumber": phoneNumber, 
-                "street": street, 
-                "city": city, 
+        const order = new Order({
+            orderNumber: orderNumber,
+            user: userId,
+            shippingAddress: {
+                contactName: contactName,
+                phoneNumber: phoneNumber, 
+                street: street, 
+                city: city, 
                 //"coordinates": coordinates
             },
-            "subtotal": totalAmount,
-            "total": totalAmount,
-            "paymentMethod": payment,
-            "status": "pending"
-        }, { session });
+            subtotal: totalAmount,
+            total: totalAmount,
+            paymentMethod: payment,
+            status: "pending"
+        });
+        //salvando o pedido
+        await order.save({ session });
+
 
         if(!order){
             console.log(`resposta do pedido: ${order}`);
@@ -99,14 +100,15 @@ const checkOut = async (req, res) => {
                 message: "Pedido mal Succedido!"
             })
         }
+
         
         for(const items of cart.items){
-            await itemOrderModel.create({
-                "order": order._id,
-                "product": items.product,
-                "price": items.priceAtAdd,
-                "quantity": items.quantity
-            }, { session })
+            await itemOrderModel.create([{
+                order: order._id,
+                product: items.product,
+                price: items.priceAtAdd,
+                quantity: items.quantity
+            }], { session })
         }
 
         //limpar o carrinho

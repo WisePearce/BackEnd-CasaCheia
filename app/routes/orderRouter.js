@@ -1,13 +1,14 @@
 import authenticateTokenProfile from '../middlewares/authProfileMiddleware.js'
-import { createOrder } from '../controllers/orderController.js'
+import { getOrder, getAllOrders} from '../controllers/orderController.js'
 import express from 'express'
 
 //router
 const router  = express.Router()
 
-//create order
-router.post('/order', authenticateTokenProfile, createOrder)
+//listar pedidos individuais de cada cliente
+router.get('/orders/my-orders', authenticateTokenProfile, getOrder);
 
-//export router
-const orderRouter = router
-export default orderRouter
+router.get('/orders/all', authenticateTokenProfile, getAllOrders);
+
+const orderRouter = router;
+export default orderRouter;
