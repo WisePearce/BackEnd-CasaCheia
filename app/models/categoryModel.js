@@ -10,10 +10,6 @@ const categorySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    //image: {
-      //  type: String,
-        //required: false
-    //},
     status: {
         type: String,
         enum: ['ativo', 'inativo'],

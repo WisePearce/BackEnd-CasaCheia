@@ -11,13 +11,13 @@ import dotenv from "dotenv"
 
 dotenv.config()
 
-const register = async (req, resp) => {
+const signup = async (req, resp) => {
     try {
         const dados = req.body
         console.log(dados)
 
         //ver se o usuario ja existe
-        const telefone = dados.telefone
+        const  telefone = dados.telefone
         const verifyUser = await User.findOne({ telefone: telefone })
         if (verifyUser) {
             return resp.status(422).json({
@@ -91,7 +91,7 @@ const register = async (req, resp) => {
     }
 }
 
-const login = async (req, res) => {
+const signin = async (req, res) => {
     try {
         const data = req.body
         if(data === undefined) {
@@ -366,4 +366,12 @@ const updatePassword = async (req, res) => {
     }
 }
 
-export { register, login, refreshToken, logout, profile, updateUser, updatePassword }
+export { 
+    signup, 
+    signin, 
+    refreshToken, 
+    logout, 
+    profile, 
+    updateUser, 
+    updatePassword
+ }
