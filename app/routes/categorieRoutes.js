@@ -15,13 +15,13 @@ route.get('/categories', getCategories);
 
 //buscar categorias por nome (query param)
 //Exemplo: /categories/search?name=eletronicos
-route.get('/categories/search', searchCategoriesByName);
+route.get('/categories', searchCategoriesByName);
 
 //Rota para obter uma categoria por ID
 route.get('/categories/:id', getCategorieById);
 
 //Rota para atualizar uma categoria por ID
-route.patch('/categories/:id', authenticateToken, asyncUpload(upload.single('image')), updateCategorie);
+route.patch('/categories/:id', authenticateToken, updateCategorie);
 
 //Rota para deletar uma categoria por ID
 route.delete('/categories/:id', authenticateToken, deleteCategorie);

@@ -14,8 +14,9 @@ const checkOut = async (req, res) => {
     const payment = req.body.payment;
 
     //id do usuario vindo do payload
-    const userId = req.id;
-
+    const userId = req.user.id;
+    console.log(typeof userId);
+    console.log(`userId no checkout: ${userId}`);
     //endereco de entrega
     const {contactName, phoneNumber, street, city, coordinates} = req.body;
 
@@ -50,10 +51,27 @@ const checkOut = async (req, res) => {
                 message: error.details[0].message
             });
         }
+        if(mongoose.Types.ObjectId.isValid(userId) === false){
+            return res.status(400).json({
+                status: false,
+                message: "ID do usuario invalido."
+            })
+        }
 
         //buscar carrinho do cliente
 
         const cart = await cartModel.findOne({user: userId});
+
+        if(cart == null){
+            console.log(`dados do carrinho: ${cart}`);
+
+            return res.status(404).json({
+                status: false,
+                message: "Carrinho nao Encontrado ou vazio  !"
+            })
+        }
+
+        console.log(`dados do carrinho: ${cart}`);
         if(cart.items.length == 0){
             console.log(`dados do carrinho: ${cart}`);
 
