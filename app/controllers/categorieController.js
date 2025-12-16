@@ -153,8 +153,14 @@ export const deleteCategorie = async (req, resp) => {
 }
 export const searchCategoriesByName = async (req, resp) => {
     try {
-        const { name } = req.query;
-        const regex = new RegExp(name, 'i'); // 'i' para case-insensitive
+        const { search } = req.query;
+        if (!search || search.trim() === "") {
+            return resp.status(400).json({
+                status: false,
+                message: "O nome da categoria é obrigatório para a busca."
+            });
+        }
+        const regex = new RegExp(search, 'i'); // 'i' para case-insensitive
         const categories = await categorySchema.find({ name: { $regex: regex } });
 
         if (categories.length === 0) {

@@ -140,6 +140,12 @@ const showAll = async (req, res) => {
 const deleteProduct = async (req, res) => {
     try {
         const id = req.params.id
+        if(id === null || mongoose.Types.ObjectId.isValid(id) === false){
+            return  res.status(400).json({
+                status: false,
+                message: "ID do produto inválido."
+            })
+        }
 
         //buscar e deletar produto
         const deleteProduct = await productSchema.findByIdAndDelete({ _id: id })
@@ -164,9 +170,15 @@ const deleteProduct = async (req, res) => {
 
 const searchProduct = async (req, res) => {
     try {
-        const { name } = req.query
+        const { search } = req.query
+        if (!search || search.trim() === "") {
+            return res.status(400).json({
+                status: false,
+                message: "O nome do produto é obrigatório para a busca."
+            })
+        }
 
-        const productName = new RegExp(name, "i")
+        const productName = new RegExp(search, "i")
 
         //buscar produto pelo nome
         const findProductByName = await productSchema.find({ name: { $regex: productName } })
@@ -193,20 +205,12 @@ const updateProduct = async (req, res) => {
         const id = req.params.id
         const productData = req.body
         let images = req.files
-
-        console.log("teste ", images)
-        //limitar quantidade de imagens
-        if (images.length > 4) {
-            return res.status(400).json({
-                status: false,
-                messages: "excedeu o limite maximo de imagens por produto, o limite deve ser 4 imagens"
-            })
-        }
-
-        if (process.env.NODE_ENV === "production") {
+        if (!(images === undefined || images === null)) {
+            if (process.env.NODE_ENV === "production") {
             images = req.files.map(file => file.path)
         } else {
             images = req.files.map(file => file.filename)
+        }
         }
 
         //verificar id
@@ -226,7 +230,7 @@ const updateProduct = async (req, res) => {
             })
         }
         //validar os dados vindo do formulario
-        const { error, value } = await productUpdateValidation.validate(productData)
+        const { error, value } = productUpdateValidation.validate(productData)
 
         if (error) {
             return res.status(400).json({
@@ -241,8 +245,18 @@ const updateProduct = async (req, res) => {
         if (value.stock !== undefined) dados.stock = value.stock
         if (value.description !== undefined) dados.description = value.description
         //adicionar a imagem ao produto
-        if (images) {
+
+        if (!(images === undefined || images === null)) {
+            //limitar quantidade de imagens
+            if (images.length > 4) {
+                return res.status(400).json({
+                    status: false,
+                    messages: "excedeu o limite maximo de imagens por produto, o limite deve ser 4 imagens"
+                })
+            }
+            if (images) {
             dados.image = images
+        }
         }
 
         const updatedProduct = await dados.save()
@@ -295,5 +309,43 @@ const productPaginaction = async (req, res) => {
         });
     }
 }
+const showById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        if (id === null || id === undefined || id === "") {
+            return res.status(400).json({
+                status: false,
+                message: "ID do produto é obrigatório."
+            });
+        }
 
-export { createProduct, showAll, deleteProduct, searchProduct, updateProduct, productPaginaction }
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                status: false,
+                message: "ID do produto inválido."
+            });
+        }
+        const product = await productSchema.findById(id);
+
+        if (!product) {
+            return res.status(404).json({
+                status: false,
+                message: "Produto não encontrado."
+            });
+        }
+
+        const formattedProduct = {
+            ...product.toObject(),
+            price: parseFloat(product.price.toString())
+        };
+
+        return res.status(200).json(formattedProduct);
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({
+            status: false,
+            message: "Erro no Servidor, Nao foi possivel buscar o produto, contacte o suporte!"
+        });
+    }
+}
+export { createProduct, showAll, deleteProduct, searchProduct, updateProduct, productPaginaction, showById }
