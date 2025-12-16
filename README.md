@@ -1,5 +1,8 @@
 📌 Documentação da API – Casa Cheia
+
+
 Cadastro de Usuário
+
 Método: POST : https://casa-fscp.onrender.com/api/auth/register
 
 Campos obrigatórios:
