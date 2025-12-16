@@ -14,25 +14,23 @@ dotenv.config()
 const signup = async (req, resp) => {
     try {
         const dados = req.body
-        console.log(dados)
-
-        //ver se o usuario ja existe
-        const  telefone = dados.telefone
-        const verifyUser = await User.findOne({ telefone: telefone })
-        if (verifyUser) {
-            return resp.status(422).json({
-                status: false,
-                message: "Use outro numero de telefone porfavor!"
-            })
-        }
-
-        //validar os dados vindo do usuario
+                //validar os dados vindo do usuario
         const { error, value } = userDataValidation.validate(dados)
 
         if (error) {
             return resp.status(400).json({
                 status: false,
                 message: error.details[0].message
+            })
+        }
+
+        //ver se o usuario ja existe
+        const  telefone = value.telefone
+        const verifyUser = await User.findOne({ telefone: telefone })
+        if (verifyUser) {
+            return resp.status(422).json({
+                status: false,
+                message: "Use outro numero de telefone porfavor!"
             })
         }
 
