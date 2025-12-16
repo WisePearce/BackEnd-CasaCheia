@@ -14,14 +14,13 @@ app.use(express.urlencoded({ extended: true}))
 app.use(helmet())
 app.use(cors())
 
-//endereco base: http://localhost:3000/api/v1/supdate
 //routes para usuario
-app.use('/api.casacheia/auth', signin)
-app.use('/api.casacheia/auth', loginUser)
-app.use('/api.casacheia/auth', logoutUser)
-app.use('/api.casacheia', profileUser)
-app.use('/api.casacheia', update)
-app.use('/api.casacheia', password)
+app.use('/api/auth', signin)
+app.use('/api/auth', loginUser)
+app.use('/api/auth', logoutUser)
+app.use('/api', profileUser)
+app.use('/api', update)
+app.use('/api', password)
 
 
 //routes para produtos
