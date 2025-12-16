@@ -16,7 +16,9 @@ role: Pode ser user ou admin, se nao informar sera cadastrado como user
 password: Senha escolhida pelo usuário
 
 Resposta de sucesso: Retorna os dados do usuário cadastrado.
+
 MODELO: 
+
 {
     "name": "Samuel Gomes",
 		"telefone": "111111111",
