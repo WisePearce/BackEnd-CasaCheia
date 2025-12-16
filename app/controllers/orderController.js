@@ -167,8 +167,8 @@ const updateStatusOrder = async (req, res) => {
         return res.status(200).json({ 
             status: true, 
             message: 'Status atualizado com sucesso', 
-            orderId, 
-            novoStatus: status 
+            "id_pedido": orderId, 
+            novo_status: status 
         });
 
     } catch (error) {
