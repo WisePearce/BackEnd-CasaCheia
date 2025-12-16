@@ -20,6 +20,7 @@ Resposta de sucesso: Retorna os dados do usuário cadastrado.
 MODELO: 
 
 {
+
     "name": "Samuel Gomes",
 		"telefone": "111111111",
 		"password": "samuel1234",
@@ -42,6 +43,7 @@ password
 Resposta de sucesso: Retorna os dados do usuário logado e um token JWT, que deve ser usado para acessar rotas protegidas.
 MODELO: 
 {
+
 		"telefone": "111111111",
 		"password": "samuel1234"
 }
@@ -65,8 +67,10 @@ Rota: https://casa-fscp.onrender.com/api/auth/profile
 Protegida: Sim (necessário enviar o token JWT no cabeçalho Authorization).
 
 Retorna: Dados do usuário autenticado, incluindo id, nome, e-mail, telefone e role.
+
 EXEMPLO:
 {
+
 	"status": true,
 	"user": {
 		"name": "Samuel Gomes",
@@ -76,8 +80,10 @@ EXEMPLO:
 		"updatedAt": "2025-12-16T14:24:40.501Z",
 		"__v": 0
 	}
+	
 }
 ------------------------------------------
+
 Perfil do Usuário (ATUALIZAR PASSWORD)
 
 Método: PATCH
@@ -87,16 +93,23 @@ Rota: https://casa-fscp.onrender.com/api/auth/profile/password
 Protegida: Sim (necessário enviar o token JWT no cabeçalho Authorization).
 
 Retorna:
+
 {
+
     "status": false,
     "message": "sua senha antiga esta incorreta!"
 }
+
 EXEMPLO DO JSON A SER ENVIADO:
+
 {
+
     "newPassword": "angola1234",
     "currentPassword": "luanda12349"
 }
+
 ----------------------------------------------
+
 🛒 Produtos
 
 Cadastro de Produto
@@ -104,7 +117,9 @@ Cadastro de Produto
 Método: POST
 
 Rota: https://casa-fscp.onrender.com/api/products
+
 NOTA: O body precisa ser form-data
+
 Campos obrigatórios:
 
 name: Nome do produto
@@ -120,7 +135,9 @@ description: Descrição detalhada do produto
 NOTA: o campo category deve ser preenchido com o ID da sua categoria e nao pelo nome
 
 images: type: file
+
 ----------------------------------------------
+
 Listagem de Produtos
 
 Método: GET
@@ -128,16 +145,21 @@ Método: GET
 Rota: https://casa-fscp.onrender.com/api/products
 
 Retorna: Lista de todos os produtos cadastrados.
+
 -----------------------------------------------
+
 Detalhes de um Produto
 
 Método: GET
 
 Rota: https://casa-fscp.onrender.com/api/products/id
+
 nota: id deve ser parecido a este 69402a52b943ed00fa46b7ed
 
 Retorna: Dados completos de um produto específico.
+
 ---------------------------------------------------------
+
 Atualizar Produto
 
 Método: PATCH
@@ -145,7 +167,9 @@ Método: PATCH
 Rota: https://casa-fscp.onrender.com/api/products/id
 
 Permite: Alterar informações já cadastradas de um produto.
+
 ---------------------------------------------------------
+
 Excluir Produto
 
 Método: DELETE
@@ -153,6 +177,7 @@ Método: DELETE
 Rota: https://casa-fscp.onrender.com/api/products/id
 
 Permite: Remover um produto do banco de dados.
+
 ---------------------------------------------------------
 
 Buscar Produtos pelo nome
@@ -165,8 +190,8 @@ Permite: Buscar os produtos pelos seus nomes.
 
 ⚠️ Observações importantes Deve passar o parametro search
 
--------------------------------------------------------------
 ----------------------------------------------------------
+
 CATEGORIAS
 
 Cadastrar:
@@ -177,6 +202,7 @@ Rota: https://casa-fscp.onrender.com/api/categories
 
 EXEMPLO: 
 {
+
 	"name": "Bebidas",
     "description": "Produtos Bebiveis"
 }
@@ -234,6 +260,7 @@ Rota: https://casa-fscp.onrender.com/api/cart
 
 Modelo: 
 {
+
     "items": [
         {
         "productId": "6941b57dcb8789ee253b388c",
@@ -250,11 +277,17 @@ Modelo:
 }
 
 ----------------------------------
+
 Listar produtos do Carrinho
+
 Metodo: GET
+
 Rota: https://casa-fscp.onrender.com/api/cart
+
 REPOSTA: 
+
 {
+
     "status": true,
     "carrinho": [
         {
@@ -283,6 +316,7 @@ REPOSTA:
 }
 
 --------------------------------------
+
 Remover Carrinho em Atualizacao Futura
 
 ----------------------------------------------------
@@ -292,9 +326,13 @@ FAZER  CHECKOUT
 Metodo: POST
 
 Rota: https://casa-fscp.onrender.com/api/orders/checkout
+
 NOTA: Deve preencher o endereco de entrega
+
 MODELO:
+
 {
+
 	"payment": "tpa",
     "contactName": "Quimbuadi",
     "phoneNumber": "937579318",
@@ -305,11 +343,13 @@ MODELO:
 Resposta:
 
 {
+
     "status": true,
     "message": "Pedido bem Succedido!",
     "Numero do Pedido": "ORD-1765922661503-588",
     "Id_Pedido": "6941d7654c58987722a0050f"
 }
+
 -----------------------------------------------------
 
 Ver Estado Do Pedido (Cliente)
@@ -321,6 +361,7 @@ Rota: https://casa-fscp.onrender.com/api/orders/my-orders
 Resposta:
 
 [
+
     {
         "_id": "6941d7654c58987722a0050f",
         "orderNumber": "ORD-1765922661503-588",
@@ -341,8 +382,11 @@ Resposta:
             }
         ]
     }
+	
 ]
+
 --------------------------------------
+
 LISTAR TODOS OS PEDIDOS (ADMIN)
 
 Metodo: GET
@@ -350,6 +394,7 @@ Metodo: GET
 Rota: https://casa-fscp.onrender.com/api/orders/all
 
 -----------------------------------------------
+
 ATUALIZAR STATUS DO PEDIDO
 
 Metodo: PATCH
