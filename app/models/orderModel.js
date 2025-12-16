@@ -10,14 +10,12 @@ const orderSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    items: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ItemsOrder',
-        required: true
-    },
     shippingAddress: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'ShippingAddress'
+        contactName: String,
+        phoneNumber: String,
+        street: String,
+        city: String,
+        coordinates: String
     },
     discount: {
         type: Number,
@@ -33,15 +31,21 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'processing', 'shipped', 'delivered', 'canceled', 'refunded'],
+        enum: ['pending', 'confirmed', 'shipped', 'delivered', 'canceled'],
         default: 'pending'
     },
+    /*
     paymentMethod: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'PaymentMethod'
     },
-    shippedAt: { type: Date, default: Date.now() },
-    deliveredAt: { type: Date, default: Date.now() }
+    */
+    paymentMethod: {
+        type: String,
+        required: true
+    },
+    shippedAt: { type: Date, default: null },
+    deliveredAt: { type: Date, default: null }
 }, { timestamps: true})
 
 orderSchema.index({ orderNumber: 1 }, { unique: true });
