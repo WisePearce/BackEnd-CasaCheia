@@ -1,6 +1,6 @@
 import db from "../infra/db.js"
 import mongoose from "mongoose"
-import categoryModel from "./categorieModel.js"
+import categoryModel from "./categoryModel.js"
 
 const productSchema = new mongoose.Schema({
     name: {
