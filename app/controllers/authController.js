@@ -14,9 +14,9 @@ dotenv.config()
 const signup = async (req, resp) => {
     try {
         const dados = req.body
-        console.log(dados);  
-        
-        if(dados === undefined){
+        console.log(dados);
+
+        if (dados === undefined) {
             console.log(`erro nos campos para fazer cadastro ${dados}`)
             return resp.status(400).json({
                 status: false,
@@ -34,7 +34,7 @@ const signup = async (req, resp) => {
         }
 
         //ver se o usuario ja existe
-        const  telefone = value.telefone
+        const telefone = value.telefone
         const verifyUser = await User.findOne({ telefone: telefone })
         if (verifyUser) {
             return resp.status(422).json({
@@ -79,12 +79,12 @@ const signup = async (req, resp) => {
         resp.status(201).json({
             status: true,
             message: "usuario criado com sucesso e autenticado com sucesso!",
-                id: user._id,
-                name: user.name,
-                telefone: user.telefone,
-                role: user.role,
-                createdAt: user.createdAt,
-                "token": token
+            id: user._id,
+            name: user.name,
+            telefone: user.telefone,
+            role: user.role,
+            createdAt: user.createdAt,
+            "token": token
         })
 
     } catch (error) {
@@ -99,7 +99,7 @@ const signup = async (req, resp) => {
 const signin = async (req, res) => {
     try {
         const data = req.body
-        if(data === undefined) {
+        if (data === undefined) {
             console.log(`erro nos campos para fazer login ${data}`)
             return res.status(400).json({
                 status: false,
@@ -276,9 +276,17 @@ const profile = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const dados = req.body
+
+        if (dados === undefined || Object.keys(dados).length === 0) {
+            console.log(`erro nos campos para atualizar dados ${dados}`)
+            return res.status(400).json({
+                status: false,
+                message: "define o name ou telefone de forma correta para fazer o update!!!",
+                nota: "telefone deve ser unico, para usar como credencial de login"
+            })
+        }
+
         const payload = req.user
-        console.log(dados)
-        console.log(payload)
         const { error, value } = updateSchema.validate(dados)
 
         if (error) {
@@ -288,95 +296,110 @@ const updateUser = async (req, res) => {
                 message: error.details[0].message
             })
         }
-        const { name, telefone } = value; changePassword
-        const user = await User.findById({ _id: payload.id })
-
-        if (!user) {
-            console.log(user, "usuario nao econtrado!")
-            return res.status(404).json({
-                status: false,
-                message: "usario nao encontrado"
-            })
-        }
-        if (name) user.name = name.trim();
-        if (telefone) user.telefone = telefone.trim();
-
-        // Salva as alterações
-        await user.save();
-
-        return res.json({ message: 'Dados atualizado com sucesso!' });
-    } catch (error) {
-        console.log(error.message);
-        return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
-    }
-
-}
-const updatePassword = async (req, res) => {
-    try {
-        const payload = req.user
-        const { newPassword, currentPassword } = req.body
-
-        //validar os campos
-
-        const { error, value } = changePassword.validate({ newPassword, currentPassword })
-
-        if (error) {
-            console.log(error)
+        if (value.telefone == undefined && value.name == undefined) {
+            console.log("Nenhum campo para atualizar")
             return res.status(400).json({
                 status: false,
-                message: error.details[0].message
+                message: "Nenhum campo para atualizar"
             })
         }
-
-        const userFounded = await User.findById(payload.id)
-        console.log(userFounded)
-
-        if (!userFounded) {
-            console.log(userFounded)
+        const verUser = await User.findById(payload.id);
+        if (!verUser) {
+            console.log("Usuario nao encontrado para atualizar os dados!")
             return res.status(404).json({
                 status: false,
-                message: "dados nao encontrado"
+                message: "Usuario nao encontrado para atualizar os dados!"
             })
         }
+        if (value.name) verUser.name = value.name.trim();
 
-        //verificar a password
-        const passwordMatch = await passwordVerification(userFounded.password, currentPassword)
-
-        console.log("teste: ",passwordMatch)
-
-        if(!passwordMatch){
-            console.log("password atual incorreta")
-            return res.status(401).json({
-                status: false,
-                message: "sua senha atual esta incorreta"
-            })
+        if (value.telefone) {
+            const user = await User.find({ telefone: value.telefone });
+            if (user.length !== 0) {
+                console.log(user, "Numero de telefone Invalido!")
+                return res.status(400).json({
+                    status: false,
+                    message: "Numero de telefone Invalido!"
+                })
+            }
+            verUser.telefone = value.telefone.trim();
         }
 
-        //adicionado a nova password no user
-        userFounded.password = newPassword
-        //salvar nova senha no banco de dados
-        await userFounded.save()
+            // Salva as alterações
+            await verUser.save();
+            return res.json({ message: 'Dados atualizado com sucesso!' });
+        } catch (error) {
+            console.log(error.message);
+            return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
+        }
 
-        return res.status(200).json({
-            status: true,
-            message: "password atualizada com sucesso!"
-        })
-
-    } catch (error) {
-        console.log(error)
-        return res.status(500).json({
-            status: false,
-            message: "erro interno no servidor"
-        })
     }
-}
+const updatePassword = async (req, res) => {
+        try {
+            const payload = req.user
+            const { newPassword, currentPassword } = req.body
 
-export { 
-    signup, 
-    signin, 
-    refreshToken, 
-    logout, 
-    profile, 
-    updateUser, 
-    updatePassword
- }
+            //validar os campos
+
+            const { error, value } = changePassword.validate({ newPassword, currentPassword })
+
+            if (error) {
+                console.log(error)
+                return res.status(400).json({
+                    status: false,
+                    message: error.details[0].message
+                })
+            }
+
+            const userFounded = await User.findById(payload.id)
+            console.log(userFounded)
+
+            if (!userFounded) {
+                console.log(userFounded)
+                return res.status(404).json({
+                    status: false,
+                    message: "dados nao encontrado"
+                })
+            }
+
+            //verificar a password
+            const passwordMatch = await passwordVerification(userFounded.password, currentPassword)
+
+            console.log("teste: ", passwordMatch)
+
+            if (!passwordMatch) {
+                console.log("password atual incorreta")
+                return res.status(401).json({
+                    status: false,
+                    message: "sua senha atual esta incorreta"
+                })
+            }
+
+            //adicionado a nova password no user
+            userFounded.password = newPassword
+            //salvar nova senha no banco de dados
+            await userFounded.save()
+
+            return res.status(200).json({
+                status: true,
+                message: "password atualizada com sucesso!"
+            })
+
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({
+                status: false,
+                message: "erro interno no servidor"
+            })
+        }
+    }
+
+    export {
+        signup,
+        signin,
+        refreshToken,
+        logout,
+        profile,
+        updateUser,
+        updatePassword
+    }
