@@ -337,6 +337,13 @@ const updateUser = async (req, res) => {
 const updatePassword = async (req, res) => {
         try {
             const payload = req.user
+            if(req.body === undefined || Object.keys(req.body).length === 0 || !req.body.newPassword || !req.body.currentPassword){
+                console.log("erro nos campos para atualizar password")
+                return res.status(400).json({
+                    status: false,
+                    message: "define a nova senha e a atual para fazer o update!!!"
+                })
+            }
             const { newPassword, currentPassword } = req.body
 
             //validar os campos
@@ -371,7 +378,7 @@ const updatePassword = async (req, res) => {
                 console.log("password atual incorreta")
                 return res.status(401).json({
                     status: false,
-                    message: "sua senha atual esta incorreta"
+                    message: "sua senha antiga esta incorreta!"
                 })
             }
 
