@@ -14,7 +14,16 @@ dotenv.config()
 const signup = async (req, resp) => {
     try {
         const dados = req.body
-                //validar os dados vindo do usuario
+        console.log(dados);  
+        
+        if(dados === undefined){
+            console.log(`erro nos campos para fazer cadastro ${dados}`)
+            return resp.status(400).json({
+                status: false,
+                message: "define o name, telefone, password, role (admin ou user) de forma correta!!!"
+            })
+        }
+        //validar os dados vindo do usuario
         const { error, value } = userDataValidation.validate(dados)
 
         if (error) {
@@ -70,14 +79,12 @@ const signup = async (req, resp) => {
         resp.status(201).json({
             status: true,
             message: "usuario criado com sucesso e autenticado com sucesso!",
-            user: {
                 id: user._id,
                 name: user.name,
                 telefone: user.telefone,
                 role: user.role,
-                createdAt: user.createdAt
-            },
-            token
+                createdAt: user.createdAt,
+                "token": token
         })
 
     } catch (error) {
