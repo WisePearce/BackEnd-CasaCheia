@@ -170,15 +170,15 @@ const deleteProduct = async (req, res) => {
 
 const searchProduct = async (req, res) => {
     try {
-        const { search } = req.query
-        if (!search || search.trim() === "") {
+        const { name } = req.query
+        if (!name || name.trim() === "") {
             return res.status(400).json({
                 status: false,
                 message: "O nome do produto é obrigatório para a busca."
             })
         }
 
-        const productName = new RegExp(search, "i")
+        const productName = new RegExp(name, "i")
 
         //buscar produto pelo nome
         const findProductByName = await productSchema.find({ name: { $regex: productName } })
