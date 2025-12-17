@@ -184,7 +184,7 @@ Buscar Produtos pelo nome
 
 Método: GET
 
-Rota: https://casa-fscp.onrender.com/api/products?search=laranja
+Rota: https://casa-fscp.onrender.com/api/products/search?name=algumacoisa
 
 Permite: Buscar os produtos pelos seus nomes.
 
