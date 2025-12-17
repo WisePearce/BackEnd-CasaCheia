@@ -152,7 +152,7 @@ Detalhes de um Produto
 
 Método: GET
 
-Rota: https://casa-fscp.onrender.com/api/products/id
+Rota: https://casa-fscp.onrender.com/api/products/getbyid/id
 
 nota: id deve ser parecido a este 69402a52b943ed00fa46b7ed
 
