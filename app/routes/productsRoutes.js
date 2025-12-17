@@ -17,7 +17,7 @@ routes.post('/products',  authenticateToken, asyncUpload(upload.array('images', 
 routes.patch('/products/:id',  authenticateToken, asyncUpload(upload.array('images', 4)), updateProduct)    
 
 //routes para buscar um produto pelo nome
-routes.get('/products', searchProduct)
+routes.get('/products/search', searchProduct)
 
 //routes para listar todos os produtos
 routes.get('/products', showAll)
