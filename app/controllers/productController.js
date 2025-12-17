@@ -171,6 +171,7 @@ const deleteProduct = async (req, res) => {
 const searchProduct = async (req, res) => {
     try {
         const { name } = req.query
+        console.log(`nome do produto para busca: ${name}`)
         if (!name || name.trim() === "") {
             return res.status(400).json({
                 status: false,
@@ -312,6 +313,7 @@ const productPaginaction = async (req, res) => {
 const showById = async (req, res) => {
     try {
         const id = req.params.id;
+        console.log(`ID do produto para busca: ${id}`);
         if (id === null || id === undefined || id === "") {
             return res.status(400).json({
                 status: false,

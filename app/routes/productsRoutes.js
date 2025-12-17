@@ -13,17 +13,20 @@ routes.get('/products/pagination', productPaginaction)
 //routes para cadastrar produtos authenticateToken,
 routes.post('/products',  authenticateToken, asyncUpload(upload.array('images', 4)), createProduct)
 
+//routes para listar todos os produtos
+routes.get('/products', showAll)
 //routes para atualizar produtos authenticateToken,j
 routes.patch('/products/:id',  authenticateToken, asyncUpload(upload.array('images', 4)), updateProduct)    
+
+
+//router para buscar produtos pelo id
+routes.get('/products/getbyid/:id', showById)
 
 //routes para buscar um produto pelo nome
 routes.get('/products/search/:name', searchProduct)
 
-//routes para listar todos os produtos
-routes.get('/products', showAll)
-
-//router para buscar produtos pelo id
-routes.get('/products/:id', showById)
+//routes para buscar um produto pelo nome
+routes.get('/products/search', searchProduct)
 
 
 //routes para deletar produtos
