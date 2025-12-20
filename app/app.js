@@ -11,6 +11,7 @@ import cartRouter from "./routes/cartRoutes.js";
 import orderRouter from "./routes/orderRouter.js";
 import orderItemsRouter from "./routes/itemOrderRouter.js";
 import checkOutRouter from "./routes/checkOutRouter.js";
+import forgotPasswordRouter from "./routes/forgotPasswordRoutes.js";
 
 const app = express()
 dotenv.config()
@@ -24,7 +25,8 @@ app.use(cors())
 app.use('/api/auth', authRouter)
 app.use('/api', authRouter)
 
-
+//Route para forgot password e outros
+app.use('/api/auth', forgotPasswordRouter)
 
 //routes para produtos
 app.use('/api', productRoutes);
