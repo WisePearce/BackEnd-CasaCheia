@@ -108,7 +108,6 @@ const signin = async (req, res) => {
         }
         //validar os campos telefone e password
         const { error, value } = telefonePasswordValidation.validate(data)
-        console.log(value)
         if (error) {
             console.log(error.details[0].message)
             return res.status(400).json({

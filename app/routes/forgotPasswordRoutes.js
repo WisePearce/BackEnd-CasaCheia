@@ -1,10 +1,13 @@
 import express from "express";
-import  forgotPasswordController from "../controllers/forgotPasswordController.js";
+import  { forgotPassword, resetPassword } from "../controllers/forgotPasswordController.js";
 
 const router = express.Router();
 
-router.post("/forgot-password", forgotPasswordController);
+// Rotas para recuperação e redefinição de senha
+router.post("/forgot-password", forgotPassword);
 
-const forgotPasswordRouter = router;
+router.post("/reset-password", resetPassword);
 
-export default forgotPasswordRouter;
+const passwordRouter = router;
+
+export default passwordRouter;
