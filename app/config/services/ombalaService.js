@@ -16,7 +16,7 @@ const sendMessages = async (message, from, to) => {
         {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token ${process.env.OMBALA_TOKEN}`
+                'Authorization': `Token ${process.env.TOKEN_OMBALA}`
             }
         }
     )
@@ -24,7 +24,7 @@ const sendMessages = async (message, from, to) => {
 
     } catch (error) {
         if(error.response){
-            console.error("Erro da API: ", error.response.data);
+            console.error("Erro da API OMBALA: ", error.response.data);
         }else if(error.request){
             console.error("Erro na Requisicao: ", error.request);
         }else{
