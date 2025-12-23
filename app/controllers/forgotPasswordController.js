@@ -40,7 +40,7 @@ const forgotPassword = async (req, res) => {
         //gerar token de recuperação de senha e enviar por SMS ou emai
         const codeToSend = generateCode();
         const hashedCode = await hashCode(codeToSend);
-        const redisResult = await redisClient.setEx(`forgot-password:${user.telefone}`, 3600, JSON.stringify({
+        const redisResult = await redisClient.setEx(`forgot-password:${user.telefone}`, 600, JSON.stringify({
             code: hashedCode,
             attempts: 0
         })); // Expira em 10 minutos
