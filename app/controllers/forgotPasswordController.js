@@ -46,7 +46,7 @@ const forgotPassword = async (req, res) => {
         })); // Expira em 10 minutos
 
         //enviando o codigo por sms ao cliente
-        const send = await sendMessages(`Seu código de recuperação de senha é: ${codeToSend}`, 'CASA-CHEIA', user.telefone);
+        const send = await sendMessages(`Seu código de recuperação de senha é: ${codeToSend}`, 'Casa Cheia', user.telefone);
 
 
         return res.status(200).json({
