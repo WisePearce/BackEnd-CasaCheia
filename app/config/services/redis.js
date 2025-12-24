@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const redisClient = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
+  url: process.env.REDIS_URL_DEV || process.env.REDIS_URL_PRODUCTION,
   password: process.env.REDIS_PASSWORD || null
 });
 
