@@ -4,6 +4,7 @@ import cartModel from "../models/cartModel.js";
 import mongoose from "mongoose";
 import shippingAddressSchema from "../config/validations/shippingAdress.js";
 import productModel from "../models/productModel.js";
+import sendMessages from "../config/services/ombalaService.js";
 
 const checkOut = async (req, res) => {
 
@@ -137,6 +138,11 @@ const checkOut = async (req, res) => {
 
         //confirmar toda transacao
         await session.commitTransaction();
+
+        //enviar mensagem de sucesso ao cliente
+        const sms = "Encomenda confirmada com sucesso!Um atendente da loja entrará em contacto consigo brevemente para dar seguimento.";
+        await sendMessages(sms, 'Casa Cheia', phoneNumber);
+
 
         return res.status(201).json({
             status: true,
