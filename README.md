@@ -1,5 +1,30 @@
 📌 Documentação da API – Casa Cheia
+--------------------------------
+NOVAS ATUALIZACOES
 
+Esqueci a minha Senha (GERAR Codigo)
+
+Método: POST : https://casa-fscp.onrender.com/api/auth/forgot-password
+
+{
+
+	"telefone": "937579318"
+}
+
+-------------------------------------
+
+Esqueci a minha Senha (JA TEM O CODIGO EM POSSE)
+
+Método: POST : https://casa-fscp.onrender.com/api/auth/reset-password
+
+{
+
+	"telefone": "937579318",
+	"password": "luanda123456",
+	"code": "301641"
+}
+
+-----------------------------------
 
 Cadastro de Usuário
 
