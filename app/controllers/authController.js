@@ -5,16 +5,18 @@ import { passwordVerification, hash_password } from "../config/passwordHash.js"
 import jwt from "jsonwebtoken"
 import Token from "../models/tokenModel.js"
 import changePassword from "../config/changePassword.js"
-
+import redisClient from "../config/services/redis.js";
+import sendMessages from "../config/services/ombalaService.js";
 import authenticateToken from "../middlewares/authMiddleware.js"
-import dotenv from "dotenv"
+import argon2 from "argon2";
+import dotenv from "dotenv";
+import generateCode from "../config/utils/randomCode.js";
 
 dotenv.config()
 
 const signup = async (req, resp) => {
     try {
         const dados = req.body
-        console.log(dados);
 
         if (dados === undefined) {
             console.log(`erro nos campos para fazer cadastro ${dados}`)
@@ -42,50 +44,33 @@ const signup = async (req, resp) => {
                 message: "Use outro numero de telefone porfavor!"
             })
         }
+        //gerar codigo de 6 digitos e fazer o hash
+        const codeToSend = generateCode();
+        const hashedCode = await argon2.hash(codeToSend);
 
-        //Os dados estao limpos entao, bora cadastrar
-        const user = await User.create(dados)
-        //gerar token para autenticacao
-        const token = jwt.sign(
-            {
-                id: user._id,
-                telefone: user.telefone,
-                role: user.role
-            },
-            process.env.JWT_KEY,
-            { expiresIn: '4h' }
-        )
+        //redis aqui entra em accao para guardar o hash por 10 minutos
+        const parseRedisData = await redisClient.setEx(`new-user: ${telefone}`, 60*50, JSON.stringify({
+            code: hashedCode,
+            attempts: 0
+        }));
 
-        //gerar o refresh token para o cliente (user) e salvar no banco de dados
-        const userRefreshToken = jwt.sign(
-            {
-                id: user._id,
-                telefone: user.telefone,
-                role: user.role
-            },
-            process.env.JWT_REFRESH_SECRET,
-            {
-                expiresIn: "7d"
-            }
-        )
+        //enviar o codigo da sms de 6 digitos para o usuario
+        const send = await sendMessages(`Seu código de abertura da conta é: ${codeToSend}`, 'CASA-CHEIA', telefone);
 
-        //salvar o refreshToken no banco
-        await Token.create({
-            userId: user._id,
-            token: userRefreshToken
-        })
+        //verificar se a sms foi enviada com sucesso
+        if (!send) {
+            return resp.status(500).json({
+                status: false,
+                message: "Erro ao enviar o codigo de verificacao, tente novamente mais tarde!"
+            });
+        }
 
-        //resposta para o cliente -> front
-        resp.status(201).json({
+        //enviar resposta para o cliente
+        return resp.status(200).json({
             status: true,
-            message: "usuario criado com sucesso e autenticado com sucesso!",
-            id: user._id,
-            name: user.name,
-            telefone: user.telefone,
-            role: user.role,
-            createdAt: user.createdAt,
-            "token": token
-        })
+            message: "Codigo de verificacao enviado com sucesso! por favor verifique seu telefone.",
+            telefone: telefone
+        });
 
     } catch (error) {
         resp.status(500).json({
@@ -243,7 +228,6 @@ const logout = async (req, res) => {
             })
         }
         return res.status(200).json({
-            status: true,
             message: "logout realizado com sucesso!"
         })
     } catch (error) {
