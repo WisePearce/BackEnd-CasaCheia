@@ -49,7 +49,7 @@ const signup = async (req, resp) => {
         const hashedCode = await argon2.hash(codeToSend);
 
         //redis aqui entra em accao para guardar o hash por 10 minutos
-        const parseRedisData = await redisClient.setEx(`new-user: ${telefone}`, 3600, JSON.stringify({
+        const parseRedisData = await redisClient.setEx(`new-user: ${telefone}`, 600, JSON.stringify({
             code: hashedCode,
             attempts: 0,
             userData: value
@@ -432,7 +432,7 @@ const verifyCode = async (req, resp) => {
         if (!isCodeValid) {
             parseData.attempts += 1;
             //atualizar o numero de tentativas no redis
-            await redisClient.setEx(`new-user: ${telefone}`, 60 * 50, JSON.stringify(parseData));
+            await redisClient.setEx(`new-user: ${telefone}`, 600, JSON.stringify(parseData));
             console.log("Codigo de verificação inválido");
             return resp.status(400).json({
                 status: false,
