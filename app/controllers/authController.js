@@ -1,5 +1,5 @@
 import User from "../models/userModel.js"
-import { userDataValidation, telefonePasswordValidation, nameTelefoneValidation } from "../config/validation.js"
+import { userDataValidation, telefonePasswordValidation, nameTelefoneValidation, telefoneValidation } from "../config/validation.js"
 import updateSchema from "../config/updateSchema.js"
 import { passwordVerification, hash_password } from "../config/passwordHash.js"
 import jwt from "jsonwebtoken"
@@ -49,21 +49,15 @@ const signup = async (req, resp) => {
         const hashedCode = await argon2.hash(codeToSend);
 
         //redis aqui entra em accao para guardar o hash por 10 minutos
-        const parseRedisData = await redisClient.setEx(`new-user: ${telefone}`, 60*50, JSON.stringify({
+        const parseRedisData = await redisClient.setEx(`new-user: ${telefone}`, 3600, JSON.stringify({
             code: hashedCode,
-            attempts: 0
+            attempts: 0,
+            userData: value
         }));
 
         //enviar o codigo da sms de 6 digitos para o usuario
-        const send = await sendMessages(`Seu código de abertura da conta é: ${codeToSend}`, 'CASA-CHEIA', telefone);
+        const send = await sendMessages(`Seu código de abertura da conta é: ${codeToSend}`, 'Casa Cheia', telefone);
 
-        //verificar se a sms foi enviada com sucesso
-        if (!send) {
-            return resp.status(500).json({
-                status: false,
-                message: "Erro ao enviar o codigo de verificacao, tente novamente mais tarde!"
-            });
-        }
 
         //enviar resposta para o cliente
         return resp.status(200).json({
@@ -308,88 +302,208 @@ const updateUser = async (req, res) => {
             verUser.telefone = value.telefone.trim();
         }
 
-            // Salva as alterações
-            await verUser.save();
-            return res.json({ message: 'Dados atualizado com sucesso!' });
-        } catch (error) {
-            console.log(error.message);
-            return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
-        }
-
+        // Salva as alterações
+        await verUser.save();
+        return res.json({ message: 'Dados atualizado com sucesso!' });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
     }
+
+}
 const updatePassword = async (req, res) => {
-        try {
-            const payload = req.user
-            if(req.body === undefined || Object.keys(req.body).length === 0 || !req.body.newPassword || !req.body.currentPassword){
-                console.log("erro nos campos para atualizar password")
-                return res.status(400).json({
-                    status: false,
-                    message: "define a nova senha e a atual para fazer o update!!!"
-                })
-            }
-            const { newPassword, currentPassword } = req.body
-
-            //validar os campos
-
-            const { error, value } = changePassword.validate({ newPassword, currentPassword })
-
-            if (error) {
-                console.log(error)
-                return res.status(400).json({
-                    status: false,
-                    message: error.details[0].message
-                })
-            }
-
-            const userFounded = await User.findById(payload.id)
-            console.log(userFounded)
-
-            if (!userFounded) {
-                console.log(userFounded)
-                return res.status(404).json({
-                    status: false,
-                    message: "dados nao encontrado"
-                })
-            }
-
-            //verificar a password
-            const passwordMatch = await passwordVerification(userFounded.password, currentPassword)
-
-            console.log("teste: ", passwordMatch)
-
-            if (!passwordMatch) {
-                console.log("password atual incorreta")
-                return res.status(401).json({
-                    status: false,
-                    message: "sua senha antiga esta incorreta!"
-                })
-            }
-
-            //adicionado a nova password no user
-            userFounded.password = newPassword
-            //salvar nova senha no banco de dados
-            await userFounded.save()
-
-            return res.status(200).json({
-                status: true,
-                message: "password atualizada com sucesso!"
-            })
-
-        } catch (error) {
-            console.log(error)
-            return res.status(500).json({
+    try {
+        const payload = req.user
+        if (req.body === undefined || Object.keys(req.body).length === 0 || !req.body.newPassword || !req.body.currentPassword) {
+            console.log("erro nos campos para atualizar password")
+            return res.status(400).json({
                 status: false,
-                message: "erro interno no servidor"
+                message: "define a nova senha e a atual para fazer o update!!!"
             })
         }
+        const { newPassword, currentPassword } = req.body
+
+        //validar os campos
+
+        const { error, value } = changePassword.validate({ newPassword, currentPassword })
+
+        if (error) {
+            console.log(error)
+            return res.status(400).json({
+                status: false,
+                message: error.details[0].message
+            })
+        }
+
+        const userFounded = await User.findById(payload.id)
+        console.log(userFounded)
+
+        if (!userFounded) {
+            console.log(userFounded)
+            return res.status(404).json({
+                status: false,
+                message: "dados nao encontrado"
+            })
+        }
+
+        //verificar a password
+        const passwordMatch = await passwordVerification(userFounded.password, currentPassword)
+
+        console.log("teste: ", passwordMatch)
+
+        if (!passwordMatch) {
+            console.log("password atual incorreta")
+            return res.status(401).json({
+                status: false,
+                message: "sua senha antiga esta incorreta!"
+            })
+        }
+
+        //adicionado a nova password no user
+        userFounded.password = newPassword
+        //salvar nova senha no banco de dados
+        await userFounded.save()
+
+        return res.status(200).json({
+            status: true,
+            message: "password atualizada com sucesso!"
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            status: false,
+            message: "erro interno no servidor"
+        })
+    }
+}
+
+const verifyCode = async (req, resp) => {
+    try {
+        //verificar se o telefone e o codigo foram enviados
+        if (req.body === undefined || Object.keys(req.body).length === 0) {
+            console.log("erro nos campos para verificar codigo")
+            return resp.status(400).json({
+                status: false,
+                message: "define o telefone e o codigo de forma correta!!!"
+            })
+        }
+
+        const { telefone, code } = req.body;
+        if (!telefone || !code) {
+            return resp.status(400).json({
+                status: false,
+                message: "Telefone e código são obrigatórios."
+            });
+        }
+
+        //validar telefone
+        const { error, value } = telefoneValidation.validate({telefone});
+        if (error) {
+            console.log(`Erro de validacao do campo telefone: ${error}`);
+            return resp.status(400).json({
+                status: false,
+                message: error.details[0].message
+            });
+        }
+        //recuperar os dados do redis
+        const redisData = await redisClient.get(`new-user: ${telefone}`);
+        if (!redisData) {
+            return resp.status(400).json({
+                status: false,
+                message: "Código expirado ou inválido | verifique o numero de telefone. Por favor, registre-se novamente."
+            });
+        }
+        const parseData = JSON.parse(redisData);
+
+        //verficar o numero de tentativas
+        if (parseData.attempts >= 3) {
+            await redisClient.del(`new-user: ${telefone}`);
+            console.error("Número máximo de tentativas excedido para o código de verificação");
+            return resp.status(429).json({
+                status: false,
+                message: "Número máximo de tentativas excedido. Por favor, registre-se novamente."
+            });
+        }
+
+        //verificar o codigo
+        const isCodeValid = await argon2.verify(parseData.code, code);
+
+        if (!isCodeValid) {
+            parseData.attempts += 1;
+            //atualizar o numero de tentativas no redis
+            await redisClient.setEx(`new-user: ${telefone}`, 60 * 50, JSON.stringify(parseData));
+            console.log("Codigo de verificação inválido");
+            return resp.status(400).json({
+                status: false,
+                message: "Código de verificação inválido."
+            });
+        }
+        //pegar os dados do usuario para cadastrar
+        const dados = new Object(parseData.userData);
+        console.log(dados);
+        console.log(typeof dados);
+
+        //Os dados estao limpos entao, bora cadastrar
+        const user = await User.create(dados)
+        //gerar token para autenticacao
+        const token = jwt.sign(
+            {
+                id: user._id,
+                telefone: user.telefone,
+                role: user.role
+            },
+            process.env.JWT_KEY,
+            { expiresIn: '4h' }
+        )
+
+        //gerar o refresh token para o cliente (user) e salvar no banco de dados
+        const userRefreshToken = jwt.sign(
+            {
+                id: user._id,
+                telefone: user.telefone,
+                role: user.role
+            },
+            process.env.JWT_REFRESH_SECRET,
+            {
+                expiresIn: "7d"
+            }
+        )
+
+        //salvar o refreshToken no banco
+        await Token.create({
+            userId: user._id,
+            token: userRefreshToken
+        })
+
+        //resposta para o cliente -> front
+        resp.status(201).json({
+            status: true,
+            message: "usuario criado com sucesso e autenticado com sucesso!",
+            id: user._id,
+            name: user.name,
+            telefone: user.telefone,
+            role: user.role,
+            createdAt: user.createdAt,
+            "token": token
+        })
+    } catch (error) {
+        console.log(error);
+        resp.status(500).json({
+            status: false,
+            message: "Erro interno no servidor"
+        });
     }
 
-    export {
-        signup,
-        signin,
-        refreshToken,
-        logout,
-        profile,
-        updateUser,
-        updatePassword
-    }
+}
+
+export {
+    signup,
+    signin,
+    refreshToken,
+    logout,
+    profile,
+    updateUser,
+    updatePassword,
+    verifyCode
+};

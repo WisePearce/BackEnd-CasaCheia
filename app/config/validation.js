@@ -160,11 +160,24 @@ const categoriesValidation = Joi.object({
 
 });
 
+const telefoneValidation = Joi.object({
+    telefone: Joi.string()
+        .pattern(/^[0-9]{9}$/) // 9 dígitos (ex: Angola)
+        .required()
+        .empty()
+        .messages({
+            "string.pattern.base": "O telefone deve ter 9 dígitos numéricos.",
+            "any.required": "O telefone é obrigatório.",
+            "string.empty": "O telefone não pode ser vazio."
+        })
+});
+
 
 export {
     userDataValidation,
     nameTelefoneValidation,
     telefonePasswordValidation,
     productValidation,
-    categoriesValidation
+    categoriesValidation,
+    telefoneValidation
 };
