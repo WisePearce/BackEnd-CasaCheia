@@ -82,7 +82,6 @@ const checkOut = async (req, res) => {
             })
         }
 
-
         //numero de pedido
         const random = Math.floor(100 + Math.random() * 900);
 
