@@ -171,6 +171,10 @@ Rota: https://casa-fscp.onrender.com/api/products
 
 Retorna: Lista de todos os produtos cadastrados.
 
+Rota: https://casa-fscp.onrender.com/api/products?page=2&limit=6
+
+Retorna: Paginacao de produtos.
+
 -----------------------------------------------
 
 Detalhes de um Produto
