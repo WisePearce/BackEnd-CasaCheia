@@ -11,6 +11,7 @@ import cartRouter from "./routes/cartRoutes.js";
 import orderRouter from "./routes/orderRouter.js";
 import orderItemsRouter from "./routes/itemOrderRouter.js";
 import checkOutRouter from "./routes/checkOutRouter.js";
+import userRouter from "./routes/userRoutes.js";
 import passwordRouter from "./routes/forgotPasswordRoutes.js";
 
 const app = express()
@@ -45,6 +46,9 @@ app.use('/api', orderItemsRouter);
 
 //router para checkOutRouter
 app.use('/api', checkOutRouter);
+
+//route para listar todos os usuarios
+app.use('/api', userRouter);
 
 
 //api documentation
