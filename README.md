@@ -2,16 +2,27 @@
 --------------------------------
 NOVAS ATUALIZACOES
 Listar somente usuarios com role=user
-Método: GET : https://casa-fscp.onrender.com/api/users<img width="1375" height="887" alt="1" src="https://github.com/user-attachments/assets/8443a9fd-8ee4-470d-b825-ee87f7f3ce06" />
+Método: GET : https://casa-fscp.onrender.com/api/users
+<img width="1375" height="887" alt="1" src="https://github.com/user-attachments/assets/8443a9fd-8ee4-470d-b825-ee87f7f3ce06" />
 
 
 {
 
 	Precisa estar autenticado como Admin
+	o limte e o page sao Opcionais
 }
 
+-----------------------------------------
+Listar Todo tipo de usuarios
+Método: GET : https://casa-fscp.onrender.com/api/users/all
 
+<img width="1362" height="835" alt="2" src="https://github.com/user-attachments/assets/bd2dd708-a203-4eb0-938c-191a36cf58df" />
 
+{
+
+	Precisa estar autenticado como Admin
+	o limte e o page sao Opcionais
+}
 
 Esqueci a minha Senha (GERAR Codigo)
 
