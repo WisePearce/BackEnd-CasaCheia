@@ -7,8 +7,8 @@ const router = Router()
 
 
 //rota protegida para ir para o user profile
-router.get('/users', authenticateTokenProfile, listUsers);
-router.get('/users/all', authenticateTokenProfile, listAllUsers);
+router.get('/users', authenticateToken, listUsers);
+router.get('/users/all', authenticateToken, listAllUsers);
 
 const userRouter = router;
 export default userRouter;
