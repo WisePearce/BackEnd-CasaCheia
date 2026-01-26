@@ -46,13 +46,13 @@ const listAllUsers = async (req, res) => {
     const skip = (page - 1) * limit
 
     // filtro: apenas usuários comuns
-    const users = await User.find({ role: "user" })
-      .select("name telefone role createdAt") // nunca retorne tudo
+    const users = await User.find()
+      .select("name telefone role -password createdAt") // nunca retorne tudo
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 })
 
-    const total = await User.countDocuments({ role: "user" })
+    const total = await User.countDocuments()
 
     return res.status(200).json({
       status: true,
