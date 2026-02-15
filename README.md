@@ -1,6 +1,32 @@
 📌 Documentação da API – Casa Cheia
 --------------------------------
 NOVAS ATUALIZACOES
+
+ATUALIZAR NOME DO USUARIO
+Método: PATCH : https://casa-fscp.onrender.com/api/users/me
+{
+
+	"name": "Novo Nome"	
+}
+
+ATUALIZAR TELEFONE DO USUARIO
+Método: PATCH : https://casa-fscp.onrender.com/api/users/me/telefone
+{
+
+	"telefone": "979935479"	
+}
+
+NOTA: sera enviado novo codigo de 6 digitos para este numero de telefone
+
+Método: PATCH : https://casa-fscp.onrender.com/api/users/me/verify-number
+{
+
+	{
+	"telefone": "979935479",
+	"code": "994836"
+}
+
+
 Listar somente usuarios com role=user
 Método: GET : https://casa-fscp.onrender.com/api/users
 <img width="1375" height="887" alt="1" src="https://github.com/user-attachments/assets/8443a9fd-8ee4-470d-b825-ee87f7f3ce06" />
