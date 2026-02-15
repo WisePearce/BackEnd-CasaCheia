@@ -14,8 +14,12 @@ const updateSchema = Joi.object({
   telefone: Joi.string()
     .pattern(/^[0-9+\s-]{8,20}$/)
     .optional()
+    .min(9)
+    .max(9)
     .messages({
       'string.base': 'O telefone deve ser um texto.',
+      'string.min': 'telefone deve ter 9 dígitos',
+      'string.max': 'telefone deve ter 9 dígitos',
       'string.empty': 'O telefone não pode estar vazio.',
       'string.pattern.base':
         'O telefone deve conter apenas números, espaços, traços ou o símbolo "+", com entre 8 e 20 caracteres.',

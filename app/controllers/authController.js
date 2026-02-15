@@ -235,7 +235,6 @@ const profile = async (req, res) => {
     try {
 
         const payload = req.user
-        console.log(payload)
 
         const user = await User.findById({ _id: payload.id }).select("-password -_id")
         return res.status(200).json({
@@ -250,67 +249,7 @@ const profile = async (req, res) => {
         })
     }
 }
-const updateUser = async (req, res) => {
-    try {
-        const dados = req.body
 
-        if (dados === undefined || Object.keys(dados).length === 0) {
-            console.log(`erro nos campos para atualizar dados ${dados}`)
-            return res.status(400).json({
-                status: false,
-                message: "define o name ou telefone de forma correta para fazer o update!!!",
-                nota: "telefone deve ser unico, para usar como credencial de login"
-            })
-        }
-
-        const payload = req.user
-        const { error, value } = updateSchema.validate(dados)
-
-        if (error) {
-            console.log("Erro de validacao dos campos")
-            return res.status(400).json({
-                status: false,
-                message: error.details[0].message
-            })
-        }
-        if (value.telefone == undefined && value.name == undefined) {
-            console.log("Nenhum campo para atualizar")
-            return res.status(400).json({
-                status: false,
-                message: "Nenhum campo para atualizar"
-            })
-        }
-        const verUser = await User.findById(payload.id);
-        if (!verUser) {
-            console.log("Usuario nao encontrado para atualizar os dados!")
-            return res.status(404).json({
-                status: false,
-                message: "Usuario nao encontrado para atualizar os dados!"
-            })
-        }
-        if (value.name) verUser.name = value.name.trim();
-
-        if (value.telefone) {
-            const user = await User.find({ telefone: value.telefone });
-            if (user.length !== 0) {
-                console.log(user, "Numero de telefone Invalido!")
-                return res.status(400).json({
-                    status: false,
-                    message: "Numero de telefone Invalido!"
-                })
-            }
-            verUser.telefone = value.telefone.trim();
-        }
-
-        // Salva as alterações
-        await verUser.save();
-        return res.json({ message: 'Dados atualizado com sucesso!' });
-    } catch (error) {
-        console.log(error.message);
-        return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
-    }
-
-}
 const updatePassword = async (req, res) => {
     try {
         const payload = req.user
@@ -503,7 +442,6 @@ export {
     refreshToken,
     logout,
     profile,
-    updateUser,
     updatePassword,
     verifyCode
 };

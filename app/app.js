@@ -23,7 +23,7 @@ app.use(helmet())
 app.use(cors())
 
 //routes para usuario
-app.use('/api/auth', authRouter)
+//app.use('/api/auth', authRouter)
 app.use('/api', authRouter)
 
 //Route para forgot password e outros
