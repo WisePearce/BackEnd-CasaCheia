@@ -11,7 +11,7 @@ router.get('/users', authenticateToken, listUsers);
 router.get('/users/all', authenticateToken, listAllUsers);
 router.patch('/users/me', authenticateTokenProfile, updateUser);
 router.patch('/users/me/telefone', authenticateTokenProfile, updateTelefone);
-router.post('/users/verify-telefone', authenticateTokenProfile, verifyCode);
+router.post('/users/me/verify-number', authenticateTokenProfile, verifyCode);
 
 const userRouter = router;
 export default userRouter;
