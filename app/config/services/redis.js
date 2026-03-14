@@ -17,7 +17,14 @@ redisClient.on('connect', () => {
 
 // Conectar ao Redis
 (async () => {
-  await redisClient.connect();
+  try {
+    if (!redisClient.isOpen) {
+      await redisClient.connect();
+    }
+  } catch (err) {
+    // Isso evita que sua aplicação trave silenciosamente se o Redis Cloud falhar
+    console.error('Erro ao conectar no Redis:', err);
+  }
 })();
 
 export default redisClient;
