@@ -1,14 +1,11 @@
 import { Router } from "express";
 import { createCategorie, getCategories, getCategorieById, updateCategorie, deleteCategorie, searchCategoriesByName } from "../controllers/categorieController.js";
 import authenticateToken from "../middlewares/authMiddleware.js";
-import upload from "../config/multer/categorieUploads.js";
-import asyncUpload  from "../middlewares/uploadMiddleware.js";
-
 
 const route = Router();
 
 //Rota para criar nova categoria
-route.post('/categories', authenticateToken, asyncUpload(upload.single('image')), createCategorie);
+route.post('/categories', authenticateToken, createCategorie);
 
 //Rota para obter todas as categorias
 route.get('/categories', getCategories);

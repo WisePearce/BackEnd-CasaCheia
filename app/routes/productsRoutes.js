@@ -2,7 +2,7 @@ import express from "express"
 import {createProduct, showAll, deleteProduct, searchProduct, updateProduct, productPaginaction, showById} from "../controllers/productController.js"
 import asyncUpload from "../middlewares/uploadMiddleware.js"
 import authenticateToken from "../middlewares/authMiddleware.js"
-import upload from "../config/multer/productUploads.js"
+import { upload } from "../config/multer/productUploads.js"
 
 const routes = express.Router()
 

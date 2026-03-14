@@ -4,13 +4,13 @@ export { productValidation } from "../config/validation.js"
 import productUpdateValidation from "../config/productUpdateSchema.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import cloudinary from "../config/cloudinary/cloudinary.js"
+import  { uploadToImgBB }  from "../config/multer/productUploads.js";
 dotenv.config()
-
 const createProduct = async (req, res) => {
     try {
         const data = req.body
-        if (req.files.length === 0) {
+        const file = req.files || []
+        if (file.length === 0) {
             console.log("Nenhuma imagem foi carregada.")
             console.log(req.files)
             return res.status(400).json({
@@ -18,12 +18,14 @@ const createProduct = async (req, res) => {
                 message: "É obrigatório o upload de ao menos uma imagem."
             })
         }
+
         let images = null
-        if (req.files && req.files.length > 0) {
+        if (file && file.length > 0) {
             if (process.env.NODE_ENV === "production") {
-                images = req.files.map(file => file.path)
+              const uploadPromises = req.files.map(file => uploadToImgBB(file));
+              images = await Promise.all(uploadPromises);
             } else {
-                images = req.files.map(file => file.filename)
+                images = req.files.map(file => file.path)
             }
             console.log("teste ", images)
             const isProduction = process.env.NODE_ENV === "production"
