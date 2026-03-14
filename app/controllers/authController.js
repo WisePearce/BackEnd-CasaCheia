@@ -22,7 +22,7 @@ const signup = async (req, resp) => {
             console.log(`erro nos campos para fazer cadastro ${dados}`)
             return resp.status(400).json({
                 status: false,
-                message: "define o name, telefone, password, role (admin ou user) de forma correta!!!"
+                message: "define o name, telefone, password, de forma correta!!!"
             })
         }
         //validar os dados vindo do usuario
