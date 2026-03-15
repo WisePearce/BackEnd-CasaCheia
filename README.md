@@ -1,7 +1,42 @@
 📌 Documentação da API – Casa Cheia
 --------------------------------
 NOVAS ATUALIZACOES
+## ✨ Novas Funcionalidades (Updates Recentes)
 
+### 📂 Módulo de Parceiros (Partners)
+Implementação completa do CRUD com validações avançadas:
+- **Criação e Atualização:** Suporte a dados fiscais (NIF) e geográficos (Províncias de Angola).
+- **Busca Global:** Endpoint inteligente que permite pesquisar parceiros por **Nome** ou **NIF** em uma única.
+- **Status Management:** Controle de estados do parceiro (`active`, `inactive`, `suspended`).
+
+## 🚀 Endpoints Principais
+
+### Parceiros
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `POST` | `/partners` | Cadastra um novo parceiro |
+| `GET` | `/partners` | Lista todos os parceiros cadastrados |
+| `GET` | `/partners/:id` | Obtém detalhes de um parceiro específico |
+| `GET` | `/partners/search` | Busca por termo (Nome ou NIF) via Query Param |
+| `PATCH` | `/partners/:id` | Atualização parcial de dados (Validação Joi) |
+| `DELETE` | `/partners/:id` | Remove um parceiro do sistema |
+
+---
+
+### Criar Parceiro (`POST /partners`)
+```json
+{
+  "name": "Empresa Exemplo Lda",
+  "email": "contato@exemplo.ao",
+  "nif": "5400123456",
+  "phone": "923000111",
+  "address": {
+    "street": "Via AL15",
+    "city": "Talatona",
+    "province": "Luanda"
+  }
+}
+###
 ATUALIZAR NOME DO USUARIO
 Método: PATCH : https://casa-fscp.onrender.com/api/users/me
 {
