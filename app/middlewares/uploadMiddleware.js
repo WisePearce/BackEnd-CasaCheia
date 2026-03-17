@@ -1,15 +1,19 @@
 const asyncUpload = (uploadMiddleware) => {
   return (req, res, next) => {
     uploadMiddleware(req, res, (error) => {
-      
+      if(req.files.length === 0){
+        return res.status(400).json({
+          status: false,
+          message: "Precisa carregar pelo menos uma imagem para o produto"
+        })
+      }
       if (error) {
-        console.log(error)
-        console.log(req.files)
+        console.log("teste: ", error)
         if(error.code === "LIMIT_UNEXPECTED_FILE") {
-          console.error("limite maximo de upload de imagens. Deve ser 4 para cada produto e 1 para cada categoria")
+          console.log("teste: ", error)
           return res.status(400).json({
             status: false,
-            message: "Limite de upload de imagens excedido, maximo 4 imagens por produto e 1 por categoria"
+            message: "Excedeu o limite de ficheiro para upload, máximo de upload é 4 imagens."
           })
         }
 

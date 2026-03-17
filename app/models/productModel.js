@@ -1,6 +1,7 @@
 import db from "../infra/db.js"
 import mongoose from "mongoose"
 import categoryModel from "./categoryModel.js"
+import partner from './partnersModel.js';
 
 const productSchema = new mongoose.Schema({
     name: {
@@ -19,7 +20,11 @@ const productSchema = new mongoose.Schema({
         ref: categoryModel,
         required: true
     },
-
+    partner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: partner,
+      required: true
+    },
     stock: {
         type: Number,
         required: true
