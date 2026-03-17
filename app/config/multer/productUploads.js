@@ -28,7 +28,7 @@ const fileFilter = (req, any, cb) => {
   const allowed = ['.png', '.jpg', '.jpeg', '.webp'];
   const ext = path.extname(any.originalname).toLowerCase();
   if (allowed.includes(ext)) cb(null, true);
-  else cb(new Error('Tipo de arquivo não permitido'), false);
+  else cb(new Error(`Tipo de arquivo não permitido | use: '.png', '.jpg', '.jpeg', '.webp'`), false);
 };
 
 const upload = multer({ 

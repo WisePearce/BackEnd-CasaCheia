@@ -6,6 +6,7 @@ import helmet from "helmet"
 import productRoutes from "./routes/productsRoutes.js"
 import cartRoutes from "./routes/cartRoutes.js"
 import categorieRoutes from "./routes/categorieRoutes.js";
+import partnerRoutes from "./routes/partnerRoutes.js"
 import dotenv from "dotenv"
 import cartRouter from "./routes/cartRoutes.js";
 import orderRouter from "./routes/orderRouter.js";
@@ -43,6 +44,9 @@ app.use('/api', orderRouter);
 
 //router para OrderItems (items do pedido)
 app.use('/api', orderItemsRouter);
+
+//router para Parceiros (Partner)
+app.use('/api', partnerRoutes);
 
 //router para checkOutRouter
 app.use('/api', checkOutRouter);
