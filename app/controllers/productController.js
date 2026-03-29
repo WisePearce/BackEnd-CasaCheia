@@ -109,44 +109,36 @@ const createProduct = async (req, res) => {
     })
   }
 }
+
 const showAll = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 10
-    //console.log("pagina ", page, " limite ", limit)
-    //process.exit()
-
-    const skip = (page - 1) * limit
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
     const allProducts = await productSchema.find()
-      .skip()
-      .limit(limit)
+      .populate('category', 'name description') // Traz nome e descrição da categoria
+      .populate('partner', 'name email nif')     // Traz dados essenciais do parceiro
+      .skip(skip) // Adicionei a variável skip aqui
+      .limit(limit);
+
+      console.log("Angola teste: ", allProducts);
 
     const formatted = allProducts.map(p => ({
       ...p.toObject(),
       price: parseFloat(p.price.toString())
-    }))
-    const totalProducts = await productSchema.countDocuments()
+    }));
 
-    if (!allProducts) {
-      return res.status(404).json({
-        status: false,
-        message: "Nenhum Produto encontrado!"
-      })
-    }
-    const total = Math.ceil(totalProducts / limit)
+    const totalProducts = await productSchema.countDocuments();
+
     return res.status(200).json({
-      formatted,
+      products: formatted,
       pagina_atual: page,
-      total_paginas: total,
+      total_paginas: Math.ceil(totalProducts / limit),
       total_produtos: totalProducts
-    })
+    });
   } catch (error) {
-    console.log(error)
-    return res.status(500).json({
-      status: false,
-      message: error
-    })
+    return res.status(500).json({ status: false, message: error.message });
   }
 }
 
@@ -181,38 +173,38 @@ const deleteProduct = async (req, res) => {
   }
 }
 
+
 const searchProduct = async (req, res) => {
   try {
-    const { name } = req.query
-    console.log(`nome do produto para busca: ${name}`)
+    const { name } = req.query;
     if (!name || name.trim() === "") {
-      return res.status(400).json({
-        status: false,
-        message: "O nome do produto é obrigatório para a busca."
-      })
+      return res.status(400).json({ status: false, message: "O nome é obrigatório." });
     }
 
-    const productName = new RegExp(name, "i")
+    const productName = new RegExp(name, "i");
 
-    //buscar produto pelo nome
     const findProductByName = await productSchema.find({ name: { $regex: productName } })
+      .populate('category', 'name') // Essencial para o front-end saber a categoria
+      .populate('partner', 'name phone');
+
+        console.log("Angola teste: ",findProductByName);
 
     if (findProductByName.length === 0) {
-      return res.status(404).json({
-        status: false,
-        message: "Produto nao encontrado!"
-      })
+      return res.status(404).json({ status: false, message: "Produto não encontrado!" });
     }
-    //retornar o produto encontrado
-    return res.status(201).json(findProductByName)
+
+    // Formatar o preço para Decimal caso necessário
+    const formatted = findProductByName.map(p => ({
+      ...p.toObject(),
+      price: parseFloat(p.price.toString())
+    }));
+
+    return res.status(200).json(formatted);
   } catch (error) {
-    console.log(error.message)
-    return res.status(500).json({
-      status: false,
-      message: "Erro no Servidor, Nao foi possivel buscar o produto, contacte o suporte!"
-    })
+    return res.status(500).json({ status: false, message: error.message });
   }
 }
+
 
 const updateProduct = async (req, res) => {
   try {
@@ -250,7 +242,7 @@ const updateProduct = async (req, res) => {
       return res.status(400).json({
         status: false,
         message: error.details[0]
-      })
+      });
     }
     //dados validados
     if (value.name !== undefined) dados.name = value.name
@@ -301,7 +293,12 @@ const productPaginaction = async (req, res) => {
     const products = await productSchema.find()
       .limit(limit * 1)
       .skip((page - 1) * limit)
+      .populate('category', 'name') // Essencial para o front-end saber a categoria
+      .populate('partner', 'name phone')
       .exec();
+
+  
+      console.log("teste: ", products)
 
     const formatted = products.map(p => ({
       ...p.toObject(),
@@ -323,30 +320,23 @@ const productPaginaction = async (req, res) => {
     });
   }
 }
+
 const showById = async (req, res) => {
   try {
-    const id = req.params.id;
-    console.log(`ID do produto para busca: ${id}`);
-    if (id === null || id === undefined || id === "") {
-      return res.status(400).json({
-        status: false,
-        message: "ID do produto é obrigatório."
-      });
+    const { id } = req.params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ status: false, message: "ID inválido." });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        status: false,
-        message: "ID do produto inválido."
-      });
-    }
-    const product = await productSchema.findById(id);
+    const product = await productSchema.findById(id)
+      .populate('category') // Traz todos os campos da categoria
+      .populate('partner');  // Traz todos os campos do parceiro
+
+      console.log("teste: ", product)
 
     if (!product) {
-      return res.status(404).json({
-        status: false,
-        message: "Produto não encontrado."
-      });
+      return res.status(404).json({ status: false, message: "Produto não encontrado." });
     }
 
     const formattedProduct = {
@@ -356,11 +346,8 @@ const showById = async (req, res) => {
 
     return res.status(200).json(formattedProduct);
   } catch (error) {
-    console.log(error.message);
-    return res.status(500).json({
-      status: false,
-      message: "Erro no Servidor, Nao foi possivel buscar o produto, contacte o suporte!"
-    });
+    return res.status(500).json({ status: false, message: error.message });
   }
 }
+
 export { createProduct, showAll, deleteProduct, searchProduct, updateProduct, productPaginaction, showById }
