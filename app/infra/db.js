@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 import dotenv from 'dotenv'
 dotenv.config()
 //nome do banco
-const database = process.env.DB_NAME;
-console.log(database)
+//const database = process.env.DB_NAME;
+//console.log(database)
 
 async function connectDB() {
 
