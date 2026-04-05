@@ -24,6 +24,7 @@ Implementação completa do CRUD com validações avançadas:
 ---
 
 ### Criar Parceiro (`POST /partners`)
+https://backend-casacheia.onrender.com/api/partners
 ```json
 {
   "name": "Empresa Exemplo Lda",
