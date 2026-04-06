@@ -40,6 +40,18 @@ const productUpdateValidation = Joi.object({
       "number.empty": "campo stock deve ser preenchido",
     }),
 
+  partner: Joi.string()
+    .optional()
+    .empty()
+    .min(24)
+    .max(24)
+    .messages({
+      "string.base": "id do partner deve ser uma string",
+      "string.min": "id do partner deve ter 24 digitos",
+      "string.max": "id do partner deve ter 24 digitos",
+      "string.empty": "campo id partner deve ser preenchido",
+    }),
+
   description: Joi.string()
     .optional()
     .max(255)

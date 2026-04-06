@@ -249,6 +249,7 @@ const updateProduct = async (req, res) => {
     if (value.price !== undefined) dados.price = value.price
     if (value.category !== undefined) dados.category = value.category
     if (value.stock !== undefined) dados.stock = value.stock
+    if (value.partner !== undefined) dados.partner = value.partner
     if (value.description !== undefined) dados.description = value.description
     //adicionar a imagem ao produto
 
