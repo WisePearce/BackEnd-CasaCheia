@@ -14,6 +14,7 @@ import orderItemsRouter from "./routes/itemOrderRouter.js";
 import checkOutRouter from "./routes/checkOutRouter.js";
 import userRouter from "./routes/userRoutes.js";
 import passwordRouter from "./routes/forgotPasswordRoutes.js";
+import storeRoutes from './routes/storeCoordinatsRouter.js';
 
 const app = express()
 dotenv.config()
@@ -27,7 +28,119 @@ app.use(cors())
 //app.use('/api/auth', authRouter)
 app.use('/api', authRouter)
 
-//Route para forgot password e outros
+//Route para forgot password e outrosimport Store from '../models/storeSchema.js';
+
+// Criar loja
+export const createStoreCoordinats = async (req, res) => {
+  try {
+    const { name, latitude, longitude } = req.body;
+
+    const loja = await Store.create({
+      name,
+      latitude,
+      longitude,
+    });
+
+    res.status(201).json({
+      status: true,
+      message: 'coordenadas criada com sucesso',
+      data: loja
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: 'Erro interno no servidor',
+      error: error.message
+    });
+  }
+};
+
+// Buscar loja
+export const findCoordinats = async (req, res) => {
+  try {
+    const loja = await Store.findOne();
+
+    if (!loja) {
+      return res.status(404).json({
+        status: false,
+        message: 'Coordenadas não encontrada'
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: 'Coordenadas da Loja encontrada',
+      data: loja
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: 'Erro interno no servidor',
+      error: error.message
+    });
+  }
+};
+
+// Atualizar loja
+export const atualizarLoja = async (req, res) => {
+  try {
+    const { name, latitude, longitude } = req.body;
+
+    const loja = await Store.findOneAndUpdate(
+      { owner: req.user.id },
+      { name, latitude, longitude },
+      { new: true, runValidators: true }
+    );
+
+    if (!loja) {
+      return res.status(404).json({
+        status: false,
+        message: 'Loja não encontrada'
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: 'Loja atualizada com sucesso',
+      data: loja
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: 'Erro interno no servidor',
+      error: error.message
+    });
+  }
+};
+
+// Deletar loja
+export const deletarLoja = async (req, res) => {
+  try {
+    const loja = await Store.findOneAndDelete({ owner: req.user.id });
+
+    if (!loja) {
+      return res.status(404).json({
+        status: false,
+        message: 'Loja não encontrada'
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: 'Loja deletada com sucesso'
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: 'Erro interno no servidor',
+      error: error.message
+    });
+  }
+};
 app.use('/api/auth', passwordRouter)
 
 //routes para produtos
@@ -47,6 +160,9 @@ app.use('/api', orderItemsRouter);
 
 //router para Parceiros (Partner)
 app.use('/api', partnerRoutes);
+
+//Coordendas da loja
+app.use('/api', storeRoutes);
 
 //router para checkOutRouter
 app.use('/api', checkOutRouter);

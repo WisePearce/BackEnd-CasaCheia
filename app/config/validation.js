@@ -112,11 +112,10 @@ const productValidation = Joi.object({
   partner: Joi.string()
     .max(24)
     .min(24)
-    .required()
+    .optional()
     .empty()
     .messages({
       "string.base": "informe o id do partner (parceiro)" ,
-      "any.required": "partner é um campo obrigatório",
       "string.empty": "campo partner deve ser preenchido",
       "string.min": "id do partner deve ter 24 caracteres",
       "string.max": "id do partner deve ter 24 caracteres",
