@@ -37,8 +37,8 @@ const shippingAddressSchema = Joi.object({
     }),
 
   coordinates: Joi.object({
-    lat: Joi.number().required(),
-    lng: Joi.number().required()
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required()
   }).required().optional().messages({
     'any.required': 'Coordenadas são obrigatórias'
   })
