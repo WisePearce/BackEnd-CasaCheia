@@ -3,165 +3,127 @@ import Order from "../models/orderModel.js";
 import cartModel from "../models/cartModel.js";
 import mongoose from "mongoose";
 import shippingAddressSchema from "../config/validations/shippingAdress.js";
-import productModel from "../models/productModel.js";
 import sendMessages from "../config/services/ombalaService.js";
 
 const checkOut = async (req, res) => {
+  const session = await mongoose.startSession();
+  const { payment, contactName, phoneNumber, street, city, coordinates } = req.body;
+  const userId = req.user.id;
 
-    //inciar a sessao
-    const session = await mongoose.startSession();
-
-    //tipo de pagamento
-    const payment = req.body.payment;
-
-    //id do usuario vindo do payload
-    const userId = req.user.id;
-    console.log(typeof userId);
-    console.log(`userId no checkout: ${userId}`);
-    //endereco de entrega
-    const {contactName, phoneNumber, street, city, coordinates} = req.body;
-
-    try {
-
-        //iniciar a trasaction (Transacao)
-        session.startTransaction();
-
-        if(payment==undefined || payment == ''){
-            console.log(`payment: ${payment}`);
-            return res.status(400).json({
-                status: false,
-                message: "Precisa informar um metodo de pagamento"
-            })
-        }
-
-        //validar os campos de endereco de entrega
-
-        const {error, value} = shippingAddressSchema.validate({
-            contactName,
-            phoneNumber, 
-            street, 
-            city, 
-            coordinates
-        });
-
-        if(error){
-            console.log(error.details[0].message);
-
-            return res.status(400).json({
-                status: false,
-                message: error.details[0].message
-            });
-        }
-        if(mongoose.Types.ObjectId.isValid(userId) === false){
-            return res.status(400).json({
-                status: false,
-                message: "ID do usuario invalido."
-            })
-        }
-
-        //buscar carrinho do cliente
-
-        const cart = await cartModel.findOne({user: userId});
-
-        if(cart == null){
-            console.log(`dados do carrinho: ${cart}`);
-
-            return res.status(404).json({
-                status: false,
-                message: "Carrinho nao Encontrado ou vazio  !"
-            })
-        }
-
-        console.log(`dados do carrinho: ${cart}`);
-        if(cart.items.length == 0){
-            console.log(`dados do carrinho: ${cart}`);
-
-            return res.status(404).json({
-                status: false,
-                message: "Carrinho vazio ou nao Encontrado!"
-            })
-        }
-
-        //numero de pedido
-        const random = Math.floor(100 + Math.random() * 900);
-
-        const orderNumber = `ORD-${Date.now()}-${random}`;
-
-        //totalAmount-> valor total dos produtos
-
-        const { totalAmount } = cart;
-
-        const order = new Order({
-            orderNumber: orderNumber,
-            user: userId,
-            shippingAddress: {
-                contactName: contactName,
-                phoneNumber: phoneNumber, 
-                street: street, 
-                city: city, 
-                //"coordinates": coordinates
-            },
-            subtotal: totalAmount,
-            total: totalAmount,
-            paymentMethod: payment,
-            status: "pending"
-        });
-        //salvando o pedido
-        await order.save({ session });
-
-
-        if(!order){
-            console.log(`resposta do pedido: ${order}`);
-
-            return res.status(404).json({
-                status: false,
-                message: "Pedido mal Succedido!"
-            })
-        }
-
-        
-        for(const items of cart.items){
-            await itemOrderModel.create([{
-                order: order._id,
-                product: items.product,
-                price: items.priceAtAdd,
-                quantity: items.quantity
-            }], { session })
-        }
-
-        //limpar o carrinho
-        cart.items = [];
-        cart.totalAmount = 0;
-
-        await cart.save({ session });
-
-        //confirmar toda transacao
-        await session.commitTransaction();
-
-        //enviar mensagem de sucesso ao cliente
-        const sms = "Encomenda confirmada com sucesso!Um atendente da loja entrará em contacto consigo brevemente para dar seguimento.";
-        await sendMessages(sms, 'Casa Cheia', phoneNumber);
-
-
-        return res.status(201).json({
-            status: true,
-            message: "Pedido bem Succedido!",
-            "Numero do Pedido": orderNumber,
-            "Id_Pedido": order._id
-        })
-
-        
-    } catch (error) {
-        await session.abortTransaction();
-        console.log(error);
-        return res.status(500).json({
-            status: false,
-            message: "Erro interno no servidor, Chame o suporte tecnico!"
-        })
-    } finally {
-        //terminar a sessao
-        session.endSession();
+  try {
+    // 1. Validar método de pagamento
+    if (!payment || payment.trim() === "") {
+      return res.status(400).json({
+        status: false,
+        message: "É obrigatório informar um método de pagamento.",
+      });
     }
-}
+
+    // 2. Validar ID do utilizador
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        status: false,
+        message: "ID do utilizador inválido.",
+      });
+    }
+
+    // 3. Validar endereço de entrega
+    const { error } = shippingAddressSchema.validate({
+      contactName,
+      phoneNumber,
+      street,
+      city,
+      coordinates,
+    });
+
+    if (error) {
+      return res.status(400).json({
+        status: false,
+        message: error.details[0].message,
+      });
+    }
+
+    // 4. Buscar carrinho do cliente
+    const cart = await cartModel.findOne({ user: userId });
+
+    if (!cart || cart.items.length === 0) {
+      return res.status(404).json({
+        status: false,
+        message: "Carrinho não encontrado ou vazio.",
+      });
+    }
+
+    // 5. Gerar número único de pedido
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
+
+    // 6. Iniciar transação
+    session.startTransaction();
+
+    // 7. Criar o pedido
+    const order = new Order({
+      orderNumber,
+      user: userId,
+      shippingAddress: {
+        contactName,
+        phoneNumber,
+        street,
+        city,
+        coordinates: {
+          latitude: coordinates?.latitude,
+          longitude: coordinates?.longitude,
+        },
+      },
+      subtotal: cart.totalAmount,
+      total: cart.totalAmount,
+      paymentMethod: payment,
+      status: "pending",
+    });
+
+    await order.save({ session });
+
+    // 8. Guardar os itens do pedido
+    const orderItems = cart.items.map((item) => ({
+      order: order._id,
+      product: item.product,
+      price: item.priceAtAdd,
+      quantity: item.quantity,
+    }));
+
+    await itemOrderModel.insertMany(orderItems, { session });
+
+    // 9. Limpar o carrinho
+    cart.items = [];
+    cart.totalAmount = 0;
+    await cart.save({ session });
+
+    // 10. Confirmar transação
+    await session.commitTransaction();
+
+    // 11. Enviar SMS (fora da transação — falha no SMS não cancela o pedido)
+    sendMessages(
+      "Encomenda confirmada! Um atendente entrará em contacto brevemente.",
+      "Casa Cheia",
+      phoneNumber
+    ).catch(() => {});
+
+    return res.status(201).json({
+      status: true,
+      message: "Pedido realizado com sucesso.",
+      data: {
+        numero_pedido: orderNumber,
+        id_pedido: order._id,
+      },
+    });
+
+  } catch (error) {
+    await session.abortTransaction();
+    return res.status(500).json({
+      status: false,
+      message: "Erro interno no servidor. Contacte o suporte técnico.",
+    });
+  } finally {
+    session.endSession();
+  }
+};
 
 export default checkOut;
