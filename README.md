@@ -314,7 +314,7 @@ Remover/reduzir produto(s) do carrinho.
 
 ## 🚚 Taxa de Entrega
 
-### POST `/delivery-fee`
+### POST `/delivery`
 Calcular taxa de entrega antes de finalizar o pedido.
 
 **Body (JSON):**
