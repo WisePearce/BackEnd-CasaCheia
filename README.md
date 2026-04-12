@@ -482,10 +482,10 @@ confirmed → canceled
 
 > Apenas admin.
 
-### GET `/store`
+### GET `/coornindates`
 Buscar coordenadas da loja.
 
-### POST `/store`
+### POST `/coornindates`
 Cadastrar coordenadas da loja.
 
 **Body (JSON):**
@@ -497,10 +497,10 @@ Cadastrar coordenadas da loja.
 }
 ```
 
-### PUT `/store`
+### PUT `/coornindates`
 Atualizar coordenadas.
 
-### DELETE `/store`
+### DELETE `/coornindates`
 Remover coordenadas.
 
 ---
