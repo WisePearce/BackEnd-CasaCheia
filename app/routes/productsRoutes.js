@@ -1,37 +1,24 @@
-import express from "express"
-import {createProduct, showAll, deleteProduct, searchProduct, updateProduct, productPaginaction, showById} from "../controllers/productController.js"
-import asyncUpload from "../middlewares/uploadMiddleware.js"
-import authenticateToken from "../middlewares/authMiddleware.js"
-import { upload } from "../config/multer/productUploads.js"
+import express from "express";
+import {
+  createProduct,
+  showAll,
+  showById,
+  searchProduct,
+  updateProduct,
+  deleteProduct,
+} from "../controllers/productController.js";
+import asyncUpload from "../middlewares/uploadMiddleware.js";
+import authenticateToken from "../middlewares/authMiddleware.js";
+import { upload } from "../config/multer/productUploads.js";
 
-const routes = express.Router()
+const routes = express.Router();
 
-//pagination de produtos
-//routes.get('/products/pagination', productPaginaction)
-routes.get('/products', productPaginaction)
+routes.get("/products", showAll);
+routes.get("/products/search", searchProduct);
+routes.get("/products/:id", showById);
+routes.post("/products", authenticateToken, asyncUpload(upload.array("images", 4)), createProduct);
+routes.patch("/products/:id", authenticateToken, upload.array("images", 4), updateProduct);
+routes.delete("/products/:id", authenticateToken, deleteProduct);
 
-//routes para cadastrar produtos authenticateToken,
-routes.post('/products',  authenticateToken, asyncUpload(upload.array('images', 4)), createProduct)
-
-//routes para atualizar produtos authenticateToken,j
-routes.patch('/products/:id',  authenticateToken, asyncUpload(upload.array('images', 4)), updateProduct)    
-
-
-//router para buscar produtos pelo id
-routes.get('/products/getbyid/:id', showById)
-
-//routes para buscar um produto pelo nome
-routes.get('/products/search/:name', searchProduct)
-
-//routes para buscar um produto pelo nome
-routes.get('/products/search', searchProduct)
-
-
-//routes para deletar produtos
-routes.delete('/products/:id', authenticateToken, deleteProduct)
-
-
-//routes para produtos
-const productRoutes = routes
-//rxportar as rotas
-export default productRoutes
+const productRoutes = routes;
+export default productRoutes;
