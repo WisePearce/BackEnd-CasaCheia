@@ -20,6 +20,10 @@ const partnerSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    images: {
+        type: [String],
+        required: false
+    },
     status: {
       type: String,
       enum: ['active', 'inactive', 'suspended'],
