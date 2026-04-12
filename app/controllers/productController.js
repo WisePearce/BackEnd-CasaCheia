@@ -59,9 +59,11 @@ const createProduct = async (req, res) => {
         message: "Ja existe um produto com este mesmo nome, informe outro nome por favor"
       })
     }
+    console.log("teste ", product.partner)
     //verificar se o partner(parceiro) realmente existe
     const verifyPartner = await partnerSchema.findOne({ _id: product.partner })
 
+    console.log(verifyPartner);
     if (!verifyPartner) {
       return res.status(404).json({
         status: false,
