@@ -4,7 +4,7 @@ const asyncUpload = (uploadMiddleware) => {
       if(req.files.length === 0){
         return res.status(400).json({
           status: false,
-          message: "Precisa carregar pelo menos uma imagem para o produto"
+          message: "Precisa carregar pelo menos uma imagem"
         })
       }
       if (error) {
