@@ -4,12 +4,12 @@ const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   shippingAddress: {
     contactName: String,
@@ -20,38 +20,42 @@ const orderSchema = new mongoose.Schema({
       latitude: {
         type: Number,
         min: [-90, 'Latitude mínima é -90'],
-        max: [90, 'Latitude máxima é 90']
+        max: [90, 'Latitude máxima é 90'],
       },
       longitude: {
         type: Number,
         min: [-180, 'Longitude mínima é -180'],
-        max: [180, 'Longitude máxima é 180']
-      }
-    }
+        max: [180, 'Longitude máxima é 180'],
+      },
+    },
   },
   discount: {
     type: Number,
-    default: 0
+    default: 0,
+  },
+  deliveryFee: {
+    type: Number,
+    required: true,
   },
   subtotal: {
     type: Number,
-    required: true
+    required: true,
   },
   total: {
     type: Number,
-    required: true
+    required: true,
   },
   status: {
     type: String,
     enum: ['pending', 'confirmed', 'shipped', 'delivered', 'canceled'],
-    default: 'pending'
+    default: 'pending',
   },
   paymentMethod: {
     type: String,
-    required: true
+    required: true,
   },
   shippedAt: { type: Date, default: null },
-  deliveredAt: { type: Date, default: null }
+  deliveredAt: { type: Date, default: null },
 }, { timestamps: true });
 
 orderSchema.index({ user: 1, createdAt: -1 });
