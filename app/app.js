@@ -16,6 +16,7 @@ import userRouter from "./routes/userRoutes.js";
 import passwordRouter from "./routes/forgotPasswordRoutes.js";
 import storeRoutes from './routes/storeCoordinatsRouter.js';
 import bannerRouter from './routes/bannerRoutes.js';
+import deliveryRouter from './routes/deliveryFreeRoutes.js';
 
 const app = express()
 dotenv.config()
@@ -164,6 +165,9 @@ app.use('/api', partnerRoutes);
 
 //router para Banners (Imagens de apresentacao)
 app.use('/api', bannerRouter);
+
+//router para calcular valor de entrega
+app.use('/api', deliveryRouter);
 
 //Coordendas da loja
 app.use('/api', storeRoutes);
