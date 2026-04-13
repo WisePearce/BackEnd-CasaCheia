@@ -10,6 +10,12 @@ import { calculateDistance, calculateDeliveryFee } from "../config/utils/deliver
 const checkOut = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
+  if (!req.body) {
+    return res.status(400).json({
+      status: false,
+      message: "Dados do pedido inválidos.",
+    });
+  }
 
   const { payment, contactName, phoneNumber, street, city, coordinates } = req.body;
   const userId = req.user.id;
