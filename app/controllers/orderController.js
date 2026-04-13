@@ -126,12 +126,6 @@ const getOrder = async (req, res) => {
 };
 
 const getAllOrders = async (req, res) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({
-      status: false,
-      message: "Acesso negado. Apenas administradores podem ver todos os pedidos.",
-    });
-  }
 
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
@@ -260,10 +254,6 @@ const getAllOrders = async (req, res) => {
 const updateStatusOrder = async (req, res) => {
   const { orderId } = req.params;
   const { status } = req.body;
-
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ status: false, message: "Acesso negado." });
-  }
 
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
     return res.status(400).json({ status: false, message: "ID do pedido inválido." });
