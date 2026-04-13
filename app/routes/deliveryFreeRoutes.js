@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import authenticateToken from '../middlewares/authMiddleware.js';
+import authenticateTokenProfile from '../middlewares/authMiddleware.js';
 import { getDeliveryFee } from '../controllers/deliveryController.js';
 
 const router = Router();
 
-router.post('/delivery', authenticateToken, getDeliveryFee);
+router.post('/delivery', authenticateTokenProfile, getDeliveryFee);
 
 const deliveryRouter = router;
 
