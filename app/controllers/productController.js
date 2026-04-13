@@ -75,7 +75,7 @@ const showAll = async (req, res) => {
       productSchema
         .find()
         .populate("category", "name description")
-        .populate("partner", "name email nif")
+        .populate("partner", "name email nif images")
         .skip(skip)
         .limit(limit),
       productSchema.countDocuments(),
@@ -138,7 +138,7 @@ const searchProduct = async (req, res) => {
     const products = await productSchema
       .find({ name: { $regex: new RegExp(name, "i") } })
       .populate("category", "name")
-      .populate("partner", "name phone");
+      .populate("partner", "name phone images");
 
     if (products.length === 0) {
       return res.status(404).json({ status: false, message: "Produto não encontrado." });
