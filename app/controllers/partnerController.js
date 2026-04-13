@@ -23,6 +23,49 @@ const parseBodyFields = (body, fields) => {
   });
 };
 
+const partnerPipeline = [
+  {
+    $lookup: {
+      from: "products",
+      localField: "_id",
+      foreignField: "partner",
+      as: "products",
+    },
+  },
+  {
+    $addFields: {
+      totalProducts: { $size: "$products" },
+    },
+  },
+  {
+    $project: {
+      name: 1,
+      email: 1,
+      nif: 1,
+      phone: 1,
+      status: 1,
+      images: 1,
+      address: 1,
+      createdAt: 1,
+      totalProducts: 1,
+      products: {
+        $map: {
+          input: "$products",
+          as: "p",
+          in: {
+            _id: "$$p._id",
+            name: "$$p.name",
+            price: "$$p.price",
+            stock: "$$p.stock",
+            image: "$$p.image",
+            description: "$$p.description",
+          },
+        },
+      },
+    },
+  },
+];
+
 export const createPartner = async (req, resp) => {
   try {
     try {
@@ -64,7 +107,11 @@ export const createPartner = async (req, resp) => {
 
 export const getPartners = async (req, resp) => {
   try {
-    const partners = await partnerSchema.find().sort({ createdAt: -1 });
+    const partners = await partnerSchema.aggregate([
+      { $sort: { createdAt: -1 } },
+      ...partnerPipeline,
+    ]);
+
     return resp.status(200).json({
       status: true,
       count: partners.length,
@@ -83,12 +130,16 @@ export const getPartnerById = async (req, resp) => {
       return resp.status(400).json({ status: false, message: "O formato do ID fornecido é inválido." });
     }
 
-    const partner = await partnerSchema.findById(id);
-    if (!partner) {
+    const result = await partnerSchema.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      ...partnerPipeline,
+    ]);
+
+    if (!result.length) {
       return resp.status(404).json({ status: false, message: "Parceiro não encontrado." });
     }
 
-    return resp.status(200).json({ status: true, data: partner });
+    return resp.status(200).json({ status: true, data: result[0] });
   } catch (error) {
     return resp.status(500).json({ status: false, message: "Erro ao buscar o parceiro." });
   }
@@ -217,9 +268,15 @@ export const searchPartners = async (req, resp) => {
     }
 
     const regex = new RegExp(query, "i");
-    const partners = await partnerSchema.find({
-      $or: [{ name: { $regex: regex } }, { nif: { $regex: regex } }],
-    });
+
+    const partners = await partnerSchema.aggregate([
+      {
+        $match: {
+          $or: [{ name: { $regex: regex } }, { nif: { $regex: regex } }],
+        },
+      },
+      ...partnerPipeline,
+    ]);
 
     return resp.status(200).json({ status: true, count: partners.length, data: partners });
   } catch (error) {
