@@ -1,4 +1,6 @@
 import orderModel from "../models/orderModel.js";
+import User from "../models/userModel.js";
+import { sendPush, notifyAdmins } from "../config/services/notificationService.js";
 import mongoose from "mongoose";
 
 const STATUS_TRANSITIONS = {
@@ -278,6 +280,30 @@ const updateStatusOrder = async (req, res) => {
     if (status === "delivered") order.deliveredAt = new Date();
 
     await order.save();
+
+    // Notificar cliente sobre mudança de status via push FCM
+    const user = await User.findById(order.user)
+    const statusLabel = STATUS_LABELS[status]
+    if (user?.fcmTokens?.length > 0) {
+        user.fcmTokens.forEach((token) => {
+            sendPush(
+                token,
+                "Status do Pedido",
+                `O teu pedido ${order.orderNumber} foi ${statusLabel}.`,
+                { orderId: String(order._id), orderNumber: order.orderNumber, status }
+            )
+        })
+    }
+
+    // Notificar dashboard admin sobre atualização de status
+    const io = req.app.get("io")
+    notifyAdmins(
+        io,
+        "status_update",
+        "Pedido Atualizado",
+        `Pedido ${order.orderNumber} → ${statusLabel}`,
+        { orderId: String(orderId), orderNumber: order.orderNumber, status }
+    )
 
     return res.status(200).json({
       status: true,

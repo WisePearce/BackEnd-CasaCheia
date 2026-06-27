@@ -436,6 +436,45 @@ const verifyCode = async (req, resp) => {
 
 }
 
+/**
+ * Regista ou atualiza o FCM token do dispositivo do utilizador
+ * Permite múltiplos tokens por utilizador (um por dispositivo)
+ */
+const updateFcmToken = async (req, res) => {
+    try {
+        const { fcmToken } = req.body
+        if (!fcmToken || typeof fcmToken !== "string") {
+            return res.status(400).json({
+                status: false,
+                message: "fcmToken é obrigatório e deve ser uma string."
+            })
+        }
+        const userId = req.user.id
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(404).json({
+                status: false,
+                message: "Utilizador não encontrado."
+            })
+        }
+        // Se o token já existe, não duplicar
+        if (!user.fcmTokens.includes(fcmToken)) {
+            user.fcmTokens.push(fcmToken)
+            await user.save()
+        }
+        return res.status(200).json({
+            status: true,
+            message: "FCM token registado com sucesso."
+        })
+    } catch (error) {
+        console.error("Erro ao atualizar FCM token:", error)
+        return res.status(500).json({
+            status: false,
+            message: "Erro interno no servidor."
+        })
+    }
+}
+
 export {
     signup,
     signin,
@@ -443,5 +482,6 @@ export {
     logout,
     profile,
     updatePassword,
-    verifyCode
+    verifyCode,
+    updateFcmToken
 };

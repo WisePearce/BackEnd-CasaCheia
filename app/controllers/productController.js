@@ -4,6 +4,7 @@ import productSchema from "../models/productModel.js";
 import partnerSchema from "../models/partnersModel.js";
 import categorySchema from "../models/categoryModel.js";
 import { uploadToImgBB } from "../config/multer/productUploads.js";
+import { sendPushToAllUsers } from "../config/services/notificationService.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
@@ -51,6 +52,13 @@ const createProduct = async (req, res) => {
     value.image = images;
 
     const newProduct = await productSchema.create(value);
+
+    // Notificar clientes sobre novo produto (assíncrono, não bloqueia resposta)
+    sendPushToAllUsers(
+        "Novo Produto",
+        `${newProduct.name} acabou de chegar!`,
+        { productId: String(newProduct._id), productName: newProduct.name }
+    )
 
     return res.status(201).json({
       status: true,
