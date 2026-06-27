@@ -4,6 +4,7 @@ import cartModel from "../models/cartModel.js";
 import mongoose from "mongoose";
 import shippingAddressSchema from "../config/validations/shippingAdress.js";
 import sendMessages from "../config/services/ombalaService.js";
+import { notifyAdmins } from "../config/services/notificationService.js";
 import storeSchema from "../models/myStoreModel.js";
 import { calculateDistance, calculateDeliveryFee } from "../config/utils/deliveryFree.js";
 
@@ -150,6 +151,16 @@ const checkOut = async (req, res) => {
       "Casa Cheia",
       phoneNumber
     ).catch(() => { });
+
+    // Notificar dashboard admin sobre novo pedido (assíncrono)
+    const io = req.app.get("io")
+    notifyAdmins(
+        io,
+        "new_order",
+        "Novo Pedido",
+        `Pedido ${orderNumber} — ${contactName}`,
+        { orderId: String(order._id), orderNumber, total: subtotal + deliveryFee, contactName }
+    )
 
     return res.status(201).json({
       status: true,

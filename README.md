@@ -7,7 +7,7 @@ NOVAS ATUALIZACOES
 
 ## 🏪 Parceiros (Fornecedores)
 
-> Todas as rotas exigem autenticação.
+`> Todas as rotas exigem autenticação.
 
 ### GET `/partners`
 Listar todos os parceiros.
