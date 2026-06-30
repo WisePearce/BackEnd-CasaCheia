@@ -22,9 +22,11 @@ redisClient.on('connect', () => {
       await redisClient.connect();
     }
   } catch (err) {
-    // Isso evita que sua aplicação trave silenciosamente se o Redis Cloud falhar
+    // Isso evita que a aplicação trave silenciosamente se o Redis Cloud falhar
     console.error('Erro ao conectar no Redis:', err);
   }
 })();
+
+console.log('REDIS_URL_DEV:', process.env.REDIS_URL_DEV);
 
 export default redisClient;

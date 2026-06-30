@@ -68,6 +68,7 @@ const partnerPipeline = [
 
 export const createPartner = async (req, resp) => {
   try {
+    console.log(`teste dos dados: ${req.body}`)
     try {
       parseBodyFields(req.body, ["address"]);
     } catch (err) {

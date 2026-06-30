@@ -17,6 +17,7 @@ import passwordRouter from "./routes/forgotPasswordRoutes.js";
 import storeRoutes from './routes/storeCoordinatsRouter.js';
 import bannerRouter from './routes/bannerRoutes.js';
 import deliveryRouter from './routes/deliveryFreeRoutes.js';
+import notificationRouter from './routes/notificationRoutes.js';
 
 const app = express()
 dotenv.config()
@@ -64,6 +65,9 @@ app.use('/api', checkOutRouter);
 
 //route para listar todos os usuarios
 app.use('/api', userRouter);
+
+//route para notificações
+app.use('/api', notificationRouter);
 
 
 //api documentation

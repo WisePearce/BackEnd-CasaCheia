@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import User from './userModel';
+import User from './userModel.js';
 
 const notificationSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, enum: ['new_order', 'new_product', 'promotion'], required: true },
+    type: { type: String, enum: ['new_order', 'new_product', 'promotion', 'status_update'], required: true },
     title: { type: String, required: true },
     body: { type: String, required: true },
     data: { type: Object, default: {} },
