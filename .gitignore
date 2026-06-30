@@ -2,4 +2,5 @@
 .node_modules/
 .uploads
 ./docker-compose.yaml
-.explicacao.mdfirebase-service-account.json
+.explicacao.md
+.firebase-service-account.json
