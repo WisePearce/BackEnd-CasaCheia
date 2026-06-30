@@ -12,11 +12,20 @@ const options = {
     info: {
       title: "Api Casa-cheia",
       version: "1.0.0",
-      description: "Documentação da API Casa-Cheia em Node.js",
+      description: "Documentação da API Casa-Cheia em Node.js — Backend de e-commerce",
+      contact: {
+        name: "Suporte Casa Cheia",
+      },
     },
+    servers: [
+      {
+        url: "http://localhost:3000",
+        description: "Servidor de desenvolvimento",
+      },
+    ],
   },
 
-  apis: ["./app/routes/*.js"], // Local dos teus endpoints
+  apis: ["./app/routes/*.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

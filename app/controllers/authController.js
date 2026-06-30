@@ -11,6 +11,7 @@ import authenticateToken from "../middlewares/authMiddleware.js"
 import argon2 from "argon2";
 import dotenv from "dotenv";
 import generateCode from "../config/utils/randomCode.js";
+import AppError from "../shared/handle-errors/appError.js";
 
 dotenv.config()
 
@@ -18,8 +19,9 @@ const signup = async (req, resp) => {
     try {
         const dados = req.body
 
+        //console.log(`dados vindo do front ${dados.name}`);
+
         if (dados === undefined) {
-            console.log(`erro nos campos para fazer cadastro ${dados}`)
             return resp.status(400).json({
                 status: false,
                 message: "define o name, telefone, password, de forma correta!!!"
@@ -67,6 +69,7 @@ const signup = async (req, resp) => {
         });
 
     } catch (error) {
+
         resp.status(500).json({
             status: false,
             message: "erro interno no servidor",

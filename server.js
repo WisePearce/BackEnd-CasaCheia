@@ -1,11 +1,11 @@
 import dotenv from 'dotenv'
+dotenv.config()
 import http from 'http'
 import { Server } from "socket.io"
 import jwt from "jsonwebtoken"
 import app from "./app/app.js";
 import connectDB from './app/infra/db.js';
 
-dotenv.config()
 const port = process.env.PORT || 3000
 
 // Socket.io — servidor HTTP + websocket para notificações em tempo real no dashboard admin
