@@ -60,8 +60,9 @@ O sistema de notificações tem **2 blocos independentes**. Lê esta secção pr
 
 | Bloco | Tecnologia | Público-alvo | O que entrega |
 |-------|-----------|-------------|--------------|
-| **Push Notification** | Firebase Cloud Messaging (FCM) | Clientes (app mobile + web) | Notificação push mesmo com app fechado |
-| **Tempo real + In-App** | Socket.io + MongoDB | Administradores (dashboard web) | Notificação instantânea + histórico |
+| **Push Notification** | Firebase Cloud Messaging (FCM) | Clientes | Notificação push mesmo com app fechado |
+| **Notificação In-App** | MongoDB | Clientes + Admins | Histórico de notificações consultável via `GET /api/profile/notifications` |
+| **Tempo real** | Socket.io | Administradores | Notificação instantânea no dashboard |
 
 ---
 
@@ -490,12 +491,13 @@ Os schemas `Notification`, `NotificationsResponse`, `MarkAsReadResponse` e `FcmT
 
 ## 7. Mapeamento completo de eventos
 
-| Ação | Push FCM (cliente) | Socket.io (admin) | MongoDB in-app |
-|------|-------------------|-------------------|----------------|
-| Cliente faz checkout | ❌ | ✅ `new_order` | ✅ notificação criada p/ cada admin |
-| Admin cria produto | ✅ broadcast para todos | ❌ | ❌ |
-| Admin atualiza status | ✅ só para o dono do pedido | ✅ `status_update` | ✅ notificação criada p/ cada admin |
-| Cliente regista FCM token | — | — | ✅ token guardado no user |
+| Ação | Push FCM (cliente) | Socket.io (admin) | MongoDB in-app (admins) | MongoDB in-app (clientes) |
+|------|:---:|:---:|:---:|:---:|
+| Cliente faz checkout | ❌ | ✅ `new_order` | ✅ notificação criada p/ cada admin | ❌ |
+| Admin cria produto | ✅ broadcast p/ todos | ❌ | ❌ | ✅ `new_product` p/ todos |
+| Admin reduz preço | ❌ | ❌ | ❌ | ✅ `promotion` p/ todos |
+| Admin atualiza status | ✅ só dono do pedido | ✅ `status_update` | ✅ notificação p/ cada admin | ✅ `status_update` p/ dono |
+| Cliente regista FCM token | — | — | — | ✅ token guardado |
 
 ---
 
@@ -507,7 +509,7 @@ app/
 ├── app.js                                     ← monta as rotas
 ├── config/
 │   ├── firebase/firebase.js                   ← inicializa Firebase Admin SDK
-│   └── services/notificationService.js        ← 6 funções do core
+│   └── services/notificationService.js        ← 7 funções do core
 ├── controllers/
 │   ├── authController.js                      ← updateFcmToken
 │   ├── notificationController.js              ← getUserNotifications, markAsRead

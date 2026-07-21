@@ -69,6 +69,26 @@ const saveInAppNotification = async (userId, type, title, body, data = {}) => {
 };
 
 /**
+ * Salva notificação in-app para TODOS os utilizadores (clientes)
+ */
+const saveInAppNotificationToAllUsers = async (type, title, body, data = {}) => {
+  try {
+    const users = await User.find({ role: "user" });
+    if (users.length === 0) return;
+    const notifications = users.map((user) => ({
+      user: user._id,
+      type,
+      title,
+      body,
+      data,
+    }));
+    await Notification.insertMany(notifications);
+  } catch (error) {
+    console.error("Erro ao salvar notificação para todos:", error.message);
+  }
+};
+
+/**
  * Salva notificação in-app para todos os admins + emite via Socket.io
  */
 const notifyAdmins = async (io, type, title, body, data = {}) => {
@@ -107,4 +127,4 @@ const markAsRead = async (notificationId) => {
   return Notification.findByIdAndUpdate(notificationId, { read: true }, { new: true });
 };
 
-export { sendPush, sendPushToAllUsers, saveInAppNotification, notifyAdmins, getUnreadNotifications, markAsRead };
+export { sendPush, sendPushToAllUsers, saveInAppNotification, saveInAppNotificationToAllUsers, notifyAdmins, getUnreadNotifications, markAsRead };
