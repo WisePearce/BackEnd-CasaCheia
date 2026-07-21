@@ -21,7 +21,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
     ttl: (key) => upstash.ttl(key),
   }
 
-  console.log("Redis: Upstash REST API configurado")
+
 } else {
   // Redis TCP padrão (desenvolvimento local)
   const url = process.env.NODE_ENV === "production" ? process.env.REDIS_URL : process.env.REDIS_URL_DEV
@@ -29,7 +29,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 
   if (tcpClient) {
     tcpClient.on("error", (err) => console.error("Redis Client Error:", err.message))
-    tcpClient.on("connect", () => console.log("Conectado ao Redis com sucesso!"))
+
 
     // Adaptar interface
     redisClient = {

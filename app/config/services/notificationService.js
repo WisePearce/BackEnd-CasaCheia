@@ -36,7 +36,6 @@ const sendPushToAllUsers = async (title, body, data = {}) => {
       tokens,
     };
     const response = await getMessaging().sendEachForMulticast(message);
-    console.log(`Push enviado para ${response.successCount} dispositivos, ${response.failureCount} falhas`);
     // Opcional: remover tokens inválidos
     if (response.failureCount > 0) {
       const invalidTokens = [];

@@ -15,13 +15,7 @@ const getCart = async (req, res) => {
                 message: "nenhum carrinho encontrado!"
             })
         }
-        console.log(cart);
-        
-        const test = await itemsOrder.find();
-        console.log(test);
-        
     } catch (error){
-        console.log(`ERRO INTERNO NO SERVIDOR: ${error}`);
         return res.status(500).json({
             status: false,
             message: "Erro interno no Servidor!"

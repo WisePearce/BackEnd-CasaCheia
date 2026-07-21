@@ -115,7 +115,6 @@ const resetPassword = async (req, res) => {
         const iscodeValid = await argon2.verify(parseRedisData.code, code);
         
         if(!iscodeValid){
-            console.log("Codigo de verificação inválido");
             //incrementar as tentativas
             parseRedisData.attempts += 1;
             //mater o ttl original

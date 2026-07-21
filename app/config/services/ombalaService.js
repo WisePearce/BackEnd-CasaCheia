@@ -20,15 +20,13 @@ const sendMessages = async (message, from, to) => {
             }
         }
     )
-    console.log("Resposta: ", response.data);
-
     } catch (error) {
         if(error.response){
             console.error("Erro da API OMBALA: ", error.response.data);
         }else if(error.request){
             console.error("Erro na Requisicao: ", error.request);
         }else{
-            console.log("Erro ao enviar mensagem: ", error.message);
+            console.error("Erro ao enviar mensagem: ", error.message);
         }
     }
 }
