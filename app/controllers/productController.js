@@ -4,7 +4,7 @@ import productSchema from "../models/productModel.js";
 import partnerSchema from "../models/partnersModel.js";
 import categorySchema from "../models/categoryModel.js";
 import { uploadToImgBB } from "../config/multer/productUploads.js";
-import { sendPushToAllUsers } from "../config/services/notificationService.js";
+import { sendPushToAllUsers, saveInAppNotificationToAllUsers } from "../config/services/notificationService.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
@@ -54,11 +54,9 @@ const createProduct = async (req, res) => {
     const newProduct = await productSchema.create(value);
 
     // Notificar clientes sobre novo produto (assíncrono, não bloqueia resposta)
-    sendPushToAllUsers(
-        "Novo Produto",
-        `${newProduct.name} acabou de chegar!`,
-        { productId: String(newProduct._id), productName: newProduct.name }
-    )
+    const notifData = { productId: String(newProduct._id), productName: newProduct.name }
+    sendPushToAllUsers("Novo Produto", `${newProduct.name} acabou de chegar!`, notifData)
+    saveInAppNotificationToAllUsers("new_product", "Novo Produto", `${newProduct.name} acabou de chegar!`, notifData)
 
     return res.status(201).json({
       status: true,
@@ -205,10 +203,19 @@ const updateProduct = async (req, res) => {
       if (value.description !== undefined) product.description = value.description;
     }
 
+    // Guardar preço antigo antes de atualizar (para detectar promoção)
+    const oldPrice = product.price;
+
     const images = await getImages(req.files);
     if (images) product.image = images;
 
     await product.save();
+
+    // Notificar clientes sobre promoção (preço baixou)
+    if (value.price !== undefined && value.price < oldPrice) {
+      const notifData = { productId: String(product._id), productName: product.name, oldPrice, newPrice: value.price }
+      saveInAppNotificationToAllUsers("promotion", "Preço Baixou!", `${product.name} está com desconto!`, notifData)
+    }
 
     return res.status(200).json({
       status: true,

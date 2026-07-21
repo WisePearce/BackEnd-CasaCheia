@@ -2,7 +2,11 @@
  * @openapi
  * tags:
  *   - name: Notificações
- *     description: Notificações in-app e push (FCM + Socket.io)
+ *     description: |
+ *       Notificações in-app armazenadas no MongoDB.
+ *       Cada utilizador vê APENAS as suas próprias notificações.
+ *       Clientes: recebem sobre novos produtos (new_product), promoções (promotion) e status do pedido (status_update).
+ *       Admins: recebem sobre novos pedidos (new_order) e atualizações de status (status_update).
  *
  * components:
  *   schemas:
@@ -16,6 +20,11 @@
  *         type:
  *           type: string
  *           enum: [new_order, new_product, promotion, status_update]
+ *           description: |
+ *             new_order = Novo pedido realizado (admins)
+ *             new_product = Novo produto adicionado (clientes)
+ *             promotion = Produto com preço reduzido (clientes)
+ *             status_update = Status do pedido atualizado (admins + clientes)
  *         title:
  *           type: string
  *         body:
@@ -51,10 +60,24 @@
  *   get:
  *     tags: [Notificações]
  *     summary: Listar notificações não lidas do utilizador autenticado
- *     description: >
- *       Retorna as notificações não lidas do utilizador autenticado (clientes e admins).
- *       Usado pelo dashboard admin para buscar notificações que chegaram enquanto estava offline.
- *       Ordenadas da mais recente para a mais antiga (máx. 50).
+ *     description: |
+ *       Retorna as notificações não lidas do utilizador autenticado.
+ *
+ *       Cada utilizador (admin ou cliente) vê APENAS as suas próprias notificações.
+ *       O sistema cria uma cópia individual da notificação para cada utilizador.
+ *
+ *       Quem recebe notificações:
+ *         - Clientes: quando o admin cria um novo produto (tipo "new_product"),
+ *           quando o preço de um produto baixa (tipo "promotion"),
+ *           e quando o status do seu pedido é atualizado (tipo "status_update")
+ *         - Admins: quando um novo pedido é realizado (tipo "new_order")
+ *           e quando o status de um pedido é atualizado (tipo "status_update")
+ *
+ *       Fluxo para o utilizador:
+ *         1. Abrir o app/dashboard
+ *         2. Chamar este endpoint para buscar notificações não lidas
+ *         3. Exibir na UI (badge, lista, pop-up)
+ *         4. Quando o utilizador visualizar, chamar PATCH /api/profile/notifications/{id}/read
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -69,7 +92,14 @@
  *   patch:
  *     tags: [Notificações]
  *     summary: Marcar notificação como lida
- *     description: Marca uma notificação como lida. Após visualizar a notificação no dashboard, o admin deve chamar este endpoint para a marcar como lida.
+ *     description: |
+ *       Marca uma notificação específica como lida.
+ *
+ *       Após o utilizador visualizar a notificação na UI, deve chamar este endpoint
+ *       para que ela não apareça mais na lista de não lidas.
+ *
+ *       Cada utilizador marca APENAS as suas próprias notificações como lidas.
+ *       Um admin marcar como lida não afeta a notificação de outro admin.
  *     security:
  *       - bearerAuth: []
  *     parameters:
