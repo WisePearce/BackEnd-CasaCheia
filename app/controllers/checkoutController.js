@@ -176,7 +176,6 @@ const checkOut = async (req, res) => {
 
   } catch (error) {
     await session.abortTransaction();
-    console.log(error.message);
     return res.status(500).json({
       status: false,
       message: "Erro interno no servidor. Contacte o suporte técnico.",

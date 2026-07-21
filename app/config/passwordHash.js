@@ -6,7 +6,6 @@ const hash_password = async(password) => {
         const hash = await argon2.hash(password)
         return hash
     } catch (error) {
-        console.log(error)
     }
 }
 const passwordVerification = async(hash, password) => {

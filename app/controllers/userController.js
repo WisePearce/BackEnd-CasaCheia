@@ -86,7 +86,6 @@ const updateUser = async (req, res) => {
         const dados = req.body
 
         if (dados === undefined || Object.keys(dados).length === 0) {
-            console.log(`erro nos campos para atualizar dados ${dados}`)
             return res.status(400).json({
                 status: false,
                 message: "define o name de forma correta para fazer o update!!!",
@@ -97,14 +96,12 @@ const updateUser = async (req, res) => {
         const { error, value } = updateSchema.validate(dados)
 
         if (error) {
-            console.log("Erro de validacao dos campos")
             return res.status(400).json({
                 status: false,
                 message: error.details[0].message
             })
         }
         if (value.name == undefined) {
-            console.log("Nenhum campo para atualizar")
             return res.status(400).json({
                 status: false,
                 message: "Nenhum campo para atualizar"
@@ -112,7 +109,6 @@ const updateUser = async (req, res) => {
         }
         const verUser = await User.findById(payload.id);
         if (!verUser) {
-            console.log("Usuario nao encontrado para atualizar os dados!")
             return res.status(404).json({
                 status: false,
                 message: "Usuario nao encontrado para atualizar os dados!"
@@ -124,7 +120,6 @@ const updateUser = async (req, res) => {
         await verUser.save();
         return res.json({ message: 'Dados atualizado com sucesso!' });
     } catch (error) {
-        console.log(error.message);
         return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
     }
 
@@ -135,7 +130,6 @@ const updateTelefone = async (req, res) => {
         const telefone = req.body
 
         if (telefone === undefined || Object.keys(telefone).length === 0) {
-            console.log(`erro nos campos para atualizar dados ${telefone}`)
             return res.status(400).json({
                 status: false,
                 message: "define o telefone de forma correta para fazer o update!!!",
@@ -147,14 +141,12 @@ const updateTelefone = async (req, res) => {
         const { error, value } = updateSchema.validate(telefone)
 
         if (error) {
-            console.log("Erro de validacao de campo")
             return res.status(400).json({
                 status: false,
                 message: error.details[0].message
             })
         }
         if (value.telefone == undefined) {
-            console.log("Nenhum campo para atualizar")
             return res.status(400).json({
                 status: false,
                 message: "Nenhum campo para atualizar"
@@ -162,7 +154,6 @@ const updateTelefone = async (req, res) => {
         }
         const verUser = await User.findById(payload.id);
         if (!verUser) {
-            console.log("Usuario nao encontrado para atualizar os dados!")
             return res.status(404).json({
                 status: false,
                 message: "Usuario nao encontrado para atualizar os dados!"
@@ -172,7 +163,6 @@ const updateTelefone = async (req, res) => {
         const novoTelefone = value.telefone.trim();
             const user = await User.find({ telefone: novoTelefone });
             if (user.length !== 0) {
-                console.log(user, "Numero de telefone em uso!")
                 return res.status(400).json({
                     status: false,
                     message: "Numero de telefone em uso, use um novo número!"
@@ -181,9 +171,7 @@ const updateTelefone = async (req, res) => {
             
             //gerar codigo de 6 digitos e fazer o hash
             const codeToSend = generateCode();
-            //console.log("codigo gerado: ", codeToSend);
             const hashedCode = await hashCode(codeToSend);
-            //console.log("codigo hasheado: ", hashedCode)
 
           //redis aqui entra em accao para guardar o hash por 10 minutos
           const parseRedisData = await redisClient.setEx(`telefone: ${novoTelefone}`, 600, JSON.stringify({
@@ -203,7 +191,6 @@ const updateTelefone = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error.message);
         return res.status(500).json({ message: 'Erro interno no servidor, contacte o suporte tecnico' });
     }
 
@@ -213,7 +200,6 @@ const verifyCode = async (req, res) => {
     try {
         //verificar se o telefone e o codigo foram enviados
         if (req.body === undefined || Object.keys(req.body).length === 0) {
-            console.log("precisa informar o novo telefone e o código para verificar codigo")
             return res.status(400).json({
                 status: false,
                 message: "define o telefone e o codigo de forma correta!!!"
@@ -233,7 +219,6 @@ const verifyCode = async (req, res) => {
         //validar telefone
         const { error, value } = updateSchema.validate({telefone});
         if (error) {
-            console.log(`Erro de validacao do campo telefone: ${error}`);
             return res.status(400).json({
                 status: false,
                 message: error.details[0].message
@@ -248,8 +233,6 @@ const verifyCode = async (req, res) => {
             });
         }
         const parseData = JSON.parse(redisData);
-
-        console.log("teste: ", parseData.code);
 
         //verficar o numero de tentativas
         if (parseData.attempts >= 3) {
@@ -268,7 +251,6 @@ const verifyCode = async (req, res) => {
             parseData.attempts += 1;
             //atualizar o numero de tentativas no redis
             await redisClient.setEx(`new-user: ${telefone}`, 600, JSON.stringify(parseData));
-            console.log("Codigo de verificação inválido");
             return res.status(400).json({
                 status: false,
                 message: "Código de verificação inválido."
@@ -280,7 +262,6 @@ const verifyCode = async (req, res) => {
 
         const verUser = await User.findById(payload.id);
         if (!verUser) {
-            console.log("Usuario nao encontrado para atualizar os dados!")
             return res.status(404).json({
                 status: false,
                 message: "Usuario nao encontrado para atualizar os dados!"
@@ -293,7 +274,6 @@ const verifyCode = async (req, res) => {
         return res.json({ message: 'Número de telefone atualizado com sucesso!' });
         
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             status: false,
             message: "Erro interno no servidor"

@@ -17,8 +17,6 @@ export const createCategorie = async (req, resp) => {
                 message: "Já existe uma categoria com esse nome."
             });
         }
-        console.log(req.body)
-
         //validar os dados
         const { error, value } = categoriesValidation.validate({ name, description });
 
@@ -39,7 +37,6 @@ export const createCategorie = async (req, resp) => {
             categorie
         });
     } catch (error) {
-        console.log(error.message);
         return resp.status(500).json({
             status: false,
             message: "Erro no servidor, tente novamente mais tarde."
@@ -55,7 +52,6 @@ export const getCategories = async (req, resp) => {
             categories
         });
     } catch (error) {
-        console.log(error.message);
         return resp.status(500).json({
             status: false,
             message: "Erro no servidor, tente novamente mais tarde."
@@ -79,7 +75,6 @@ export const getCategorieById = async (req, resp) => {
             categorie
         });
     } catch (error) {
-        console.log(error.message);
         return resp.status(500).json({
             status: false,
             message: "Erro no servidor, tente novamente mais tarde."
@@ -120,7 +115,6 @@ export const updateCategorie = async (req, resp) => {
             dados: updateCategorie
         });
     } catch (error) {
-        console.log(error.message);
         return resp.status(500).json({
             status: false,
             message: "Erro no servidor, tente novamente mais tarde."
@@ -144,7 +138,6 @@ export const deleteCategorie = async (req, resp) => {
             message: "Categoria deletada com sucesso!"
         });
     } catch (error) {
-        console.log(error.message);
         return resp.status(500).json({
             status: false,
             message: "Erro no servidor, tente novamente mais tarde."
@@ -175,7 +168,6 @@ export const searchCategoriesByName = async (req, resp) => {
             categories
         });
     } catch (error) {
-        console.log(error.message);
         return resp.status(500).json({
             status: false,
             message: "Erro no servidor, tente novamente mais tarde."

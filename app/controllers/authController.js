@@ -19,8 +19,6 @@ const signup = async (req, resp) => {
     try {
         const dados = req.body
 
-        //console.log(`dados vindo do front ${dados.name}`);
-
         if (dados === undefined) {
             return resp.status(400).json({
                 status: false,
@@ -82,7 +80,6 @@ const signin = async (req, res) => {
     try {
         const data = req.body
         if (data === undefined) {
-            console.log(`erro nos campos para fazer login ${data}`)
             return res.status(400).json({
                 status: false,
                 message: "define os campos telefone e password de forma correta!!!"
@@ -91,7 +88,6 @@ const signin = async (req, res) => {
         //validar os campos telefone e password
         const { error, value } = telefonePasswordValidation.validate(data)
         if (error) {
-            console.log(error.details[0].message)
             return res.status(400).json({
                 status: false,
                 message: error.details[0].message
@@ -245,7 +241,6 @@ const profile = async (req, res) => {
             user
         })
     } catch (error) {
-        console.log(error)
         return res.status(500).json({
             status: false,
             message: error
@@ -257,7 +252,6 @@ const updatePassword = async (req, res) => {
     try {
         const payload = req.user
         if (req.body === undefined || Object.keys(req.body).length === 0 || !req.body.newPassword || !req.body.currentPassword) {
-            console.log("erro nos campos para atualizar password")
             return res.status(400).json({
                 status: false,
                 message: "define a nova senha e a atual para fazer o update!!!"
@@ -270,7 +264,6 @@ const updatePassword = async (req, res) => {
         const { error, value } = changePassword.validate({ newPassword, currentPassword })
 
         if (error) {
-            console.log(error)
             return res.status(400).json({
                 status: false,
                 message: error.details[0].message
@@ -278,10 +271,8 @@ const updatePassword = async (req, res) => {
         }
 
         const userFounded = await User.findById(payload.id)
-        console.log(userFounded)
 
         if (!userFounded) {
-            console.log(userFounded)
             return res.status(404).json({
                 status: false,
                 message: "dados nao encontrado"
@@ -291,10 +282,7 @@ const updatePassword = async (req, res) => {
         //verificar a password
         const passwordMatch = await passwordVerification(userFounded.password, currentPassword)
 
-        console.log("teste: ", passwordMatch)
-
         if (!passwordMatch) {
-            console.log("password atual incorreta")
             return res.status(401).json({
                 status: false,
                 message: "sua senha antiga esta incorreta!"
@@ -312,7 +300,6 @@ const updatePassword = async (req, res) => {
         })
 
     } catch (error) {
-        console.log(error)
         return res.status(500).json({
             status: false,
             message: "erro interno no servidor"
@@ -324,7 +311,6 @@ const verifyCode = async (req, resp) => {
     try {
         //verificar se o telefone e o codigo foram enviados
         if (req.body === undefined || Object.keys(req.body).length === 0) {
-            console.log("erro nos campos para verificar codigo")
             return resp.status(400).json({
                 status: false,
                 message: "define o telefone e o codigo de forma correta!!!"
@@ -342,7 +328,6 @@ const verifyCode = async (req, resp) => {
         //validar telefone
         const { error, value } = telefoneValidation.validate({telefone});
         if (error) {
-            console.log(`Erro de validacao do campo telefone: ${error}`);
             return resp.status(400).json({
                 status: false,
                 message: error.details[0].message
@@ -375,7 +360,6 @@ const verifyCode = async (req, resp) => {
             parseData.attempts += 1;
             //atualizar o numero de tentativas no redis
             await redisClient.setEx(`new-user: ${telefone}`, 600, JSON.stringify(parseData));
-            console.log("Codigo de verificação inválido");
             return resp.status(400).json({
                 status: false,
                 message: "Código de verificação inválido."
@@ -383,8 +367,6 @@ const verifyCode = async (req, resp) => {
         }
         //pegar os dados do usuario para cadastrar
         const dados = new Object(parseData.userData);
-        console.log(dados);
-        console.log(typeof dados);
 
         //Os dados estao limpos entao, bora cadastrar
         const user = await User.create(dados)
@@ -430,7 +412,6 @@ const verifyCode = async (req, resp) => {
             "token": token
         })
     } catch (error) {
-        console.log(error);
         resp.status(500).json({
             status: false,
             message: "Erro interno no servidor"
