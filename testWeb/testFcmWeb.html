@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador de Token FCM</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
+</head>
+
+<body>
+    <h1>Token FCM de teste</h1>
+    <button onclick="gerarToken()">Gerar Token</button>
+    <pre id="resultado" style="word-break: break-all; margin-top: 20px; background: #eee; padding: 10px;"></pre>
+
+    <script>
+        // 1. Cole aqui o firebaseConfig que apareceu depois de registrar o app Web
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrWwBbSF5rTNq0b3LNAZNe3tunwOglns4",
+            authDomain: "app-casacheia.firebaseapp.com",
+            projectId: "app-casacheia",
+            storageBucket: "app-casacheia.firebasestorage.app",
+            messagingSenderId: "963306116249",
+            appId: "1:963306116249:web:2f48382b5a995ee8d19408",
+            measurementId: "G-2ZR9NKHWPK"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        const messaging = firebase.messaging();
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('firebase-messaging-sw.js')
+                .then((registration) => {
+                    messaging.useServiceWorker(registration);
+                    console.log('Service Worker registrado e vinculado ao FCM:', registration.scope);
+                })
+                .catch((err) => {
+                    console.error('Erro ao registrar Service Worker:', err);
+                });
+        }
+
+        function gerarToken() {
+            console.log("Permissão atual:", Notification.permission);
+
+            if (Notification.permission === 'granted') {
+                // Já tem permissão, vai direto pegar o token
+                obterToken();
+            } else if (Notification.permission === 'default') {
+                Notification.requestPermission().then((permission) => {
+                    console.log("Nova permissão:", permission);
+                    if (permission === 'granted') {
+                        obterToken();
+                    } else {
+                        document.getElementById('resultado').innerText = "Permissão negada: " + permission;
+                    }
+                });
+            } else {
+                document.getElementById('resultado').innerText = "Permissão bloqueada no navegador. Resete manualmente.";
+            }
+        }
+
+        function obterToken() {
+            messaging.getToken({ vapidKey: "BM0UGU2yMAeYy3u5wBRf4Cy1blWFaAe1IiupjAaIOJADeyxScjJTYIoTuGiwjxbJrUBMvt3nJHQo0qBtC0NfmNU" })
+                .then((token) => {
+                    document.getElementById('resultado').innerText = token;
+                    console.log("TOKEN:", token);
+                })
+                .catch((err) => {
+                    document.getElementById('resultado').innerText = "Erro: " + err;
+                    console.error(err);
+                });
+        }
+
+        // Mostra a notificação enquanto a página estiver aberta em primeiro plano
+        messaging.onMessage((payload) => {
+            alert("Notificação recebida:\n" + JSON.stringify(payload, null, 2));
+        });
+    </script>
+</body>
+
+</html>
