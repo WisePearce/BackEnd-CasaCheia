@@ -1,5 +1,9 @@
 /**
- * @swagger
+ * @openapi
+ * tags:
+ *   - name: Notificações
+ *     description: Notificações in-app e push (FCM + Socket.io)
+ *
  * components:
  *   schemas:
  *     Notification:
@@ -46,11 +50,11 @@
  * /api/profile/notifications:
  *   get:
  *     tags: [Notificações]
- *     summary: Listar notificações não lidas
+ *     summary: Listar notificações não lidas do utilizador autenticado
  *     description: >
  *       Retorna as notificações não lidas do utilizador autenticado (clientes e admins).
- *       Útil para o admin dashboard buscar notificações que chegaram enquanto estava offline.
- *       As notificações vêm ordenadas da mais recente para a mais antiga (máx. 50).
+ *       Usado pelo dashboard admin para buscar notificações que chegaram enquanto estava offline.
+ *       Ordenadas da mais recente para a mais antiga (máx. 50).
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -65,7 +69,7 @@
  *   patch:
  *     tags: [Notificações]
  *     summary: Marcar notificação como lida
- *     description: Marca uma notificação específica como lida. Usa-se depois de o admin visualizar a notificação.
+ *     description: Marca uma notificação como lida. Após visualizar a notificação no dashboard, o admin deve chamar este endpoint para a marcar como lida.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -74,7 +78,7 @@
  *         required: true
  *         schema:
  *           type: string
- *         description: ID da notificação
+ *         description: "ID da notificação (ex: 60f...)"
  *     responses:
  *       200:
  *         description: Notificação marcada como lida
