@@ -1,409 +1,593 @@
 # Sistema de Notificações — Casa Cheia
 
-## Sumário
+## 📋 O que precisas de implementar no Frontend (visão rápida)
 
-1. [Visão geral](#1-visão-geral)
-2. [Canais de notificação](#2-canais-de-notificação)
-3. [Fluxo completo](#3-fluxo-completo)
-4. [Arquitetura e decisões técnicas](#4-arquitetura-e-decisões-técnicas)
-5. [Serviços e dependências](#5-serviços-e-dependências)
-6. [Como testar](#6-como-testar)
-7. [Problemas conhecidos e gaps](#7-problemas-conhecidos-e-gaps)
+O sistema de notificações tem **2 blocos independentes**. Lê esta secção primeiro para saber o que fazer antes de ires aos detalhes.
+
+### Bloco 1 — Push Notification (FCM) para o App do Cliente
+
+| Passo | O que fazer | Onde |
+|-------|-------------|------|
+| **1** | Instalar Firebase no projeto + configurar com as chaves do projeto `app-casacheia` | [Passo 1](#22-passo-1--configuração-do-firebase-no-projeto-frontend) |
+| **2** | Após login do user, obter o token FCM do dispositivo e enviar para `PATCH /api/profile/fcm-token` | [Passo 2](#23-passo-2--registar-o-token-fcm-no-backend) |
+| **3** | Tratar notificações recebidas com o app aberto (exibir toast/modal) | [Passo 3](#24-passo-3--receber-notificações-em-primeiro-plano-foreground) |
+| **4** | Configurar recebimento com app fechado (Service Worker na web, automático no mobile) | [Passo 4](#25-passo-4--receber-notificações-em-segundo-plano-backgroundfechado) |
+| **5** | Quando user toca na notificação, navegar para a tela correta usando `data.orderId` | [Exemplo React Native](#28-exemplo-completo-de-integração-fcm-react-native) |
+
+### Bloco 2 — Socket.io + Notificações In-App para o Admin Dashboard
+
+| Passo | O que fazer | Onde |
+|-------|-------------|------|
+| **1** | Após login do admin, conectar ao Socket.io passando o JWT no `auth.token` | [Passo 1](#32-passo-1--conectar-ao-socketio-com-jwt-do-admin) |
+| **2** | Ouvir os eventos `new_order` e `status_update` para atualizar a UI em tempo real | [Passo 2](#33-passo-2--ouvir-os-eventos) |
+| **3** | Ao entrar no dashboard, fazer `GET /api/profile/notifications` para buscar notificações perdidas | [Passo 3](#34-passo-3--buscar-notificações-perdidas-via-rest-api) |
+| **4** | Quando o admin visualiza, marcar como lida com `PATCH /api/profile/notifications/:id/read` | [API](#4-api-de-notificações-in-app-rest) |
 
 ---
 
-## 1. Visão geral
+## Índice completo
 
-O sistema de notificações da Casa Cheia foi projetado para manter **clientes** e **administradores** informados sobre eventos importantes da plataforma em **tempo real**. Ele combina três canais distintos:
-
-| Canal | Tecnologia | Público | Finalidade |
-|-------|-----------|---------|------------|
-| Push Notification | **Firebase Cloud Messaging (FCM)** | Clientes | Notificar sobre mudanças de status do pedido, novos produtos |
-| Notificação in-app | **MongoDB + Socket.io** | Administradores | Notificar em tempo real no dashboard sobre novos pedidos e atualizações |
-| SMS | **API Ombala** | Clientes | Códigos de verificação (registro, recuperação de senha) e confirmação de pedido |
+1. [O que precisas de implementar no Frontend (visão rápida)](#-o-que-precisas-de-implementar-no-frontend-visão-rápida)
+2. [Visão geral](#2-visão-geral)
+3. [Serviço de Push Notification (FCM)](#3-serviço-de-push-notification-fcm)
+   - [3.1 O que é FCM](#31-o-que-é-fcm)
+   - [3.2 Passo 1 — Configuração do Firebase](#32-passo-1--configuração-do-firebase-no-projeto-frontend)
+   - [3.3 Passo 2 — Registar o token FCM](#33-passo-2--registar-o-token-fcm-no-backend)
+   - [3.4 Passo 3 — Receber em primeiro plano](#34-passo-3--receber-notificações-em-primeiro-plano-foreground)
+   - [3.5 Passo 4 — Receber em segundo plano](#35-passo-4--receber-notificações-em-segundo-plano-backgroundfechado)
+   - [3.6 Passo 5 — Novo produto (broadcast)](#36-passo-5--notificações-de-novo-produto-broadcast)
+   - [3.7 Passo 6 — Status do pedido](#37-passo-6--notificações-de-atualização-de-status-do-pedido)
+   - [3.8 Exemplo React Native](#38-exemplo-completo-react-native)
+   - [3.9 Exemplo Web](#39-exemplo-completo-web)
+4. [Serviço Socket.io — Admin Dashboard](#4-serviço-socketio--admin-dashboard)
+   - [4.1 Como funciona](#41-como-funciona)
+   - [4.2 Passo 1 — Conectar](#42-passo-1--conectar-ao-socketio)
+   - [4.3 Passo 2 — Ouvir eventos](#43-passo-2--ouvir-os-eventos)
+   - [4.4 Passo 3 — Buscar perdidas via REST](#44-passo-3--buscar-notificações-perdidas-via-rest)
+   - [4.5 Exemplo React](#45-exemplo-completo-react)
+5. [API REST de Notificações](#5-api-rest-de-notificações)
+   - [5.1 GET /api/profile/notifications](#51-get-apiprofilenotifications)
+   - [5.2 PATCH /api/profile/notifications/:id/read](#52-patch-apiprofilenotificationsidread)
+   - [5.3 PATCH /api/profile/fcm-token](#53-patch-apiprofilefcm-token)
+6. [Documentação Swagger](#6-documentação-swagger)
+7. [Mapeamento completo de eventos](#7-mapeamento-completo-de-eventos)
+8. [Estrutura de arquivos do backend](#8-estrutura-de-arquivos-do-backend)
+9. [Ambiente de teste](#9-ambiente-de-teste)
 
 ---
 
-## 2. Canais de notificação
+## 2. Visão geral
 
-### 2.1 Push Notification — Firebase Cloud Messaging (FCM)
+| Bloco | Tecnologia | Público-alvo | O que entrega |
+|-------|-----------|-------------|--------------|
+| **Push Notification** | Firebase Cloud Messaging (FCM) | Clientes (app mobile + web) | Notificação push mesmo com app fechado |
+| **Tempo real + In-App** | Socket.io + MongoDB | Administradores (dashboard web) | Notificação instantânea + histórico |
 
-**Arquivo principal:** `app/config/services/notificationService.js`
-**Firebase init:** `app/config/firebase/firebase.js`
-**Credenciais:** `firebase-service-account.json`
+---
 
-#### Registro do dispositivo — `PATCH /api/profile/fcm-token`
+## 3. Serviço de Push Notification (FCM)
 
-O cliente (app mobile) deve registar o token FCM do dispositivo no servidor após o login:
+### 3.1 O que é FCM
 
-```
-Requisição: PATCH /api/profile/fcm-token
-Headers: Authorization: Bearer <JWT>
-Body: { "fcmToken": "<token_gerado_pelo_firebase_no_app>" }
-```
+O Firebase Cloud Messaging permite enviar notificações push para dispositivos Android, iOS e Web **mesmo quando o app está fechado**.
 
-O token é armazenado no array `fcmTokens` do documento do usuário no MongoDB. Um usuário pode ter **vários tokens** (um por dispositivo onde está logado).
+### 3.2 Passo 1 — Configuração do Firebase no projeto frontend
 
-#### Envio para um dispositivo específico — `sendPush(token, title, body, data)`
-
-Usado no `orderController.updateStatusOrder` para notificar o cliente quando o status do pedido muda. Para cada token do usuário, é feita uma chamada individual à API do FCM.
-
-Exemplo: quando o admin atualiza um pedido para "shipped", o cliente recebe:
-> "O teu pedido ORD-123 foi Em entrega."
-
-#### Envio para todos os utilizadores — `sendPushToAllUsers(title, body, data)`
-
-Usado no `productController.createProduct` para notificar **todos os clientes** sobre um novo produto. Busca no MongoDB todos os usuários que têm pelo menos um token FCM, junta todos os tokens num único array e envia via `sendEachForMulticast` (FCM suporta até **500 tokens por chamada**).
-
-Se algum token falhar com `messaging/invalid-registration-token`, ele é automaticamente removido da base de dados.
-
-### 2.2 Notificações in-app + Socket.io — Administradores
-
-**Socket.io setup:** `server.js`
-**Notificação:** `notificationService.notifyAdmins()`
-
-Quando ocorre um evento relevante para os administradores, duas coisas acontecem em paralelo:
-
-1. **Persistência no MongoDB:** Busca todos os usuários com `role: "admin"` e cria um documento `Notification` para cada um.
-2. **Evento em tempo real via Socket.io:** Emite um evento para a sala `"admin-room"` onde todos os admins conectados via Socket.io estão ouvindo.
-
-#### Eventos emitidos via Socket.io
-
-| Evento | Ocorre quando | Dados enviados |
-|--------|--------------|----------------|
-| `new_order` | Cliente finaliza um checkout | `{ orderId, orderNumber, total, contactName }` |
-| `status_update` | Admin altera o status de um pedido | `{ orderId, orderNumber, status }` |
-
-#### Conexão Socket.io (lado do frontend admin)
-
-O admin dashboard deve conectar-se ao servidor Socket.io passando o JWT do admin:
+#### Chaves do projeto
 
 ```js
-const socket = io("http://localhost:3000", {
-  auth: { token: "<jwt_do_admin>" }
-});
-
-socket.on("new_order", (data) => {
-  console.log("Novo pedido:", data);
-});
-
-socket.on("status_update", (data) => {
-  console.log("Pedido atualizado:", data);
-});
+const firebaseConfig = {
+  apiKey: "AIzaSyDrWwBbSF5rTNq0b3LNAZNe3tunwOglns4",
+  authDomain: "app-casacheia.firebaseapp.com",
+  projectId: "app-casacheia",
+  storageBucket: "app-casacheia.firebasestorage.app",
+  messagingSenderId: "963306116249",
+  appId: "1:963306116249:web:2f48382b5a995ee8d19408",
+  measurementId: "G-2ZR9NKHWPK"
+};
 ```
 
-### 2.3 SMS — API Ombala
-
-**Arquivo:** `app/config/services/ombalaService.js`
-**Provider:** [Ombala](https://useombala.ao) (operadora angolana de SMS)
-
-Usado em três situações:
-
-| Função | Controller | Finalidade |
-|--------|-----------|------------|
-| `sendMessages(code, "Casa Cheia", telefone)` | `authController.signup` | Envio do código de verificação de 6 dígitos para registro |
-| `sendMessages(code, "Casa Cheia", telefone)` | `forgotPasswordController.forgotPassword` | Envio do código de recuperação de senha |
-| `sendMessages(confirmacao, "Casa Cheia", telefone)` | `checkoutController.checkOut` | Confirmação de pedido realizado |
-
----
-
-## 3. Fluxo completo
-
-### Fluxo: Cliente faz um pedido
+#### Chave VAPID (obrigatória para Web Push)
 
 ```
-[App Cliente]                          [Backend]                          [Admin Dashboard]
-     |                                     |                                     |
-     |--- PATCH /profile/fcm-token ------->|                                     |
-     |    (registra token FCM)             |                                     |
-     |                                     |                                     |
-     |--- POST /orders/checkout --------->|                                     |
-     |                                     |--- notifyAdmins("new_order") ------>|
-     |                                     |    (Socket.io + MongoDB)            |-- pop-up: "Novo Pedido"
-     |                                     |                                     |
-     |                                     |--- SMS de confirmação ------------->| (cliente)
-     |<-- 201 Pedido realizado ------------|                                     |
+BM0UGU2yMAeYy3u5wBRf4Cy1blWFaAe1IiupjAaIOJADeyxScjJTYIoTuGiwjxbJrUBMvt3nJHQo0qBtC0NfmNU
 ```
 
-### Fluxo: Admin atualiza status do pedido
+### 3.3 Passo 2 — Registar o token FCM no backend
+
+Após o login do utilizador, obtém o token FCM do dispositivo e envia para o backend:
 
 ```
-[Admin Dashboard]                       [Backend]                          [App Cliente]
-     |                                     |                                     |
-     |--- PATCH /orders/:id/status ------->|                                     |
-     |                                     |--- sendPush(token, ...) ----------->|
-     |                                     |    (FCM push notification)          |-- "Pedido foi Em entrega"
-     |                                     |                                     |
-     |<-- notifyAdmins("status_update") ---|                                     |
-     |    (Socket.io)                      |                                     |
+PATCH /api/profile/fcm-token
+Authorization: Bearer <JWT_DO_USUARIO>
+Content-Type: application/json
+
+{
+  "fcmToken": "token_gerado_pelo_firebase"
+}
 ```
 
----
-
-## 4. Arquitetura e decisões técnicas
-
-### Porque Firebase Cloud Messaging (FCM) e não outro serviço?
-
-| Serviço | Considerado? | Motivo da escolha/rejeição |
-|---------|-------------|---------------------------|
-| **FCM (Firebase)** | ✅ **Escolhido** | Grátis, sem limite de envios, suporte nativo Android/iOS via Google Play Services, integração simples com `firebase-admin`, ecossistema Firebase já usado no projeto |
-| **OneSignal** | ❌ Rejeitado | Camada extra de dependência, custos em escala, menos controlo sobre os tokens |
-| **APNs (Apple Push)** | ❌ Rejeitado | Só iOS, exigiria manter dois sistemas separados (APNs + outro para Android) |
-| **WebSocket próprio** | ❌ Rejeitado | Não escala, sem garantia de entrega em dispositivos móveis com app em background |
-
-**Vantagens do FCM para este projeto:**
-- Envio multicast para até 500 tokens numa única chamada (usado em `sendPushToAllUsers`)
-- Limpeza automática de tokens inválidos
-- Documentação extensa e suporte multiplataforma
-
-### Porque Socket.io e não Server-Sent Events (SSE) ou Polling?
-
-| Tecnologia | Considerado? | Motivo |
-|-----------|-------------|--------|
-| **Socket.io** | ✅ **Escolhido** | Bidirecional, fallback automático para long-polling, salas (rooms) para segmentar admins, amplamente adotado |
-| **SSE** | ❌ Rejeitado | Unidirecional (só servidor → cliente), sem suporte nativo em todos os browsers, sem salas |
-| **Polling** | ❌ Rejeitado | Ineficiente, latência alta, consumo desnecessário de recursos |
-
-### Porque Ombala e não Twilio ou outra API de SMS?
-
-| Serviço | Considerado? | Motivo |
-|---------|-------------|--------|
-| **Ombala** | ✅ **Escolhido** | Operadora angolana, preços locais, suporte a números angolanos (9 dígitos), integração REST simples |
-| **Twilio** | ❌ Rejeitado | Mais caro para Angola, processo de verificação burocrático, suporte limitado a operadoras angolanas |
-| **AWS SNS** | ❌ Rejeitado | Complexidade de configuração, sem suporte específico para Angola |
-
-### Porque usar MongoDB para armazenar notificações?
-
-- **Persistência:** As notificações ficam salvas mesmo que o admin esteja offline — quando ele reconectar, pode buscar o histórico via API
-- **Escalabilidade:** MongoDB lida bem com documentos de notificação que são inseridos em massa (`insertMany`)
-- **Schema flexível:** O campo `data` é um objeto livre, permitindo enviar payloads diferentes para cada tipo de notificação
-- **Indexação:** O índice `{ user: 1, createdAt: -1 }` otimiza as consultas de "notificações não lidas do usuário X ordenadas por data"
-
----
-
-## 5. Serviços e dependências
-
-### Dependências npm
-
-| Pacote | Versão | Uso |
-|--------|--------|-----|
-| `firebase-admin` | ^14.1.0 | SDK Firebase para Node.js — FCM push notifications |
-| `socket.io` | ^4.8.3 | WebSocket para tempo real no dashboard admin |
-| `axios` | ^1.13.2 | Cliente HTTP para API Ombala (SMS) e ImgBB (imagens) |
-
-### Variáveis de ambiente (`.env`)
-
-| Variável | Onde é usada | Obrigatória? |
-|----------|-------------|:---:|
-| `TOKEN_OMBALA` | `ombalaService.js` — autenticação na API Ombala | Sim (SMS) |
-| `URL_OMBALA` | `ombalaService.js` — endpoint da API Ombala | Sim (SMS) |
-| `JWT_KEY` | `server.js` — verificação de token no Socket.io | Sim |
-
-### Firebase Service Account
-
-O arquivo `firebase-service-account.json` na raiz do projeto contém as credenciais da conta de serviço do Firebase. Este arquivo:
-- É gerado no [Firebase Console](https://console.firebase.google.com) (Project Settings → Service Accounts → Generate New Private Key)
-- **NÃO deve ser commitado** no git (está no `.gitignore` se configurado corretamente)
-- Permite ao servidor Node.js autenticar-se no Firebase sem depender de um usuário logado
-
-### Estrutura de arquivos
-
-```
-app/
-├── config/
-│   ├── firebase/
-│   │   └── firebase.js              ← Inicialização do Firebase Admin SDK
-│   ├── services/
-│   │   ├── notificationService.js   ← Core do sistema (6 funções exportadas)
-│   │   ├── ombalaService.js         ← Envio de SMS via API Ombala
-│   │   └── redis.js                 ← Redis (apenas para códigos de verificação)
-├── controllers/
-│   ├── authController.js            ← updateFcmToken (registro de token)
-│   ├── orderController.js           ← sendPush + notifyAdmins
-│   ├── productController.js         ← sendPushToAllUsers
-│   └── checkoutController.js        ← notifyAdmins
-├── models/
-│   ├── notification.js              ← Schema da notificação in-app
-│   └── userModel.js                 ← Campo fcmTokens[]
-└── routes/
-    └── authRoutes.js                ← Rota PATCH /profile/fcm-token
-
-server.js                            ← Socket.io server + admin-room
-firebase-service-account.json        ← Credenciais Firebase (não commitar)
-```
-
----
-
-## 6. Como testar
-
-### 6.1 Pré-requisitos
-
-- Servidor rodando (`npm run dev` ou `npm start`)
-- MongoDB conectado
-- Redis conectado (para fluxo de registro)
-
-### 6.2 Testar Push Notification (FCM)
-
-#### Registrar um token FCM
-
-```bash
-curl -X PATCH http://localhost:3000/api/profile/fcm-token \
-  -H "Authorization: Bearer <JWT_DO_USUARIO>" \
-  -H "Content-Type: application/json" \
-  -d '{"fcmToken": "token_fcm_valido_ou_falso"}'
-```
-
-**Resposta esperada (200):**
+Resposta:
 ```json
 { "status": true, "message": "FCM token registado com sucesso." }
 ```
 
-#### Testar notificação ao criar produto (broadcast)
+**Regras:**
+- Envia o token **sempre que o app abre** (o backend ignora duplicados)
+- Cada dispositivo gera **um token diferente**
+- Tokens inválidos são removidos automaticamente pelo backend
 
-```bash
-curl -X POST http://localhost:3000/api/products \
-  -H "Authorization: Bearer <JWT_ADMIN>" \
-  -F "name=Produto Teste Notificação" \
-  -F "price=1000" \
-  -F "category=<ID_CATEGORIA>" \
-  -F "partner=<ID_PARCEIRO>" \
-  -F "stock=10" \
-  -F "description=Produto para testar notificação push"
+### 3.4 Passo 3 — Receber notificações em primeiro plano (foreground)
+
+Quando o app está aberto, as notificações **não aparecem na barra do sistema** — precisas de tratar manualmente.
+
+**React Native:**
+```js
+import messaging from '@react-native-firebase/messaging';
+
+useEffect(() => {
+  const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+    Alert.alert(
+      remoteMessage.notification.title,
+      remoteMessage.notification.body
+    );
+  });
+  return unsubscribe;
+}, []);
 ```
 
-**No console do servidor** deves ver:
-```
-Push enviado para X dispositivos, Y falhas
-```
-
-Se o token for inválido, verás também:
-```
-Erro ao enviar push FCM: messaging/invalid-registration-token
+**Web:**
+```js
+import { getMessaging, onMessage } from "firebase/messaging";
+onMessage(getMessaging(), (payload) => {
+  showToast(payload.notification.title, payload.notification.body);
+});
 ```
 
-E o token será automaticamente removido da base.
+### 3.5 Passo 4 — Receber notificações em segundo plano (background/fechado)
 
-#### Testar notificação ao atualizar status do pedido
-
-```bash
-curl -X PATCH http://localhost:3000/api/orders/<ORDER_ID>/status \
-  -H "Authorization: Bearer <JWT_ADMIN>" \
-  -H "Content-Type: application/json" \
-  -d '{"status": "confirmed"}'
-```
-
-**Resposta esperada (200):**
-```json
-{ "status": true, "message": "Status atualizado com sucesso.", "data": { "id_pedido": "...", "novo_status": "confirmed", "statusLabel": "Confirmado" } }
-```
-
-No console do servidor deves ver:
-```
-Push enviado para X dispositivos, Y falhas
-```
-
-### 6.3 Testar Socket.io (admin dashboard em tempo real)
-
-Podes usar o `socket.io-client` no Node.js ou ferramentas como [Postman WebSocket](https://learning.postman.com/docs/sending-requests/websocket/websocket/) ou [socket.io-client no browser](https://www.npmjs.com/package/socket.io-client).
-
-**Script de teste rápido:**
+**React Native** — automático. Para capturar quando o user toca na notificação:
 
 ```js
-// salva como test-socket.js na raiz
+// App fechado → notificação abre o app
+messaging().getInitialNotification().then(remoteMessage => {
+  if (remoteMessage) {
+    navigate('OrderDetails', { orderId: remoteMessage.data.orderId });
+  }
+});
+
+// App em background → user toca na notificação
+messaging().onNotificationOpenedApp(remoteMessage => {
+  navigate('OrderDetails', { orderId: remoteMessage.data.orderId });
+});
+```
+
+**Web** — precisas de um Service Worker na raiz do domínio (`public/firebase-messaging-sw.js`):
+
+```js
+importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyDrWwBbSF5rTNq0b3LNAZNe3tunwOglns4",
+  authDomain: "app-casacheia.firebaseapp.com",
+  projectId: "app-casacheia",
+  storageBucket: "app-casacheia.firebasestorage.app",
+  messagingSenderId: "963306116249",
+  appId: "1:963306116249:web:2f48382b5a995ee8d19408",
+  measurementId: "G-2ZR9NKHWPK"
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  self.registration.showNotification(
+    payload.notification?.title || 'Casa Cheia',
+    { body: payload.notification?.body || '', data: payload.data }
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const data = event.notification.data;
+  clients.openWindow(data?.orderId ? `/orders/${data.orderId}` : '/');
+});
+```
+
+### 3.6 Passo 5 — Notificações de novo produto (broadcast)
+
+Quando um admin cria um produto (`POST /api/products`), o backend envia push para **todos os clientes** automaticamente. Não precisas de fazer nada extra — só implementar os Passos 1-4.
+
+### 3.7 Passo 6 — Notificações de atualização de status do pedido
+
+Quando um admin muda o status do pedido (`PATCH /api/orders/:id/status`), o backend envia push para o cliente dono daquele pedido.
+
+**Dados que vêm na notificação:**
+
+| Campo | Exemplo | Uso |
+|-------|---------|-----|
+| `title` | "Status do Pedido" | Título |
+| `body` | "O teu pedido ORD-123 foi Confirmado." | Mensagem |
+| `data.orderId` | "60f..." | Navegar para a tela do pedido |
+| `data.orderNumber` | "ORD-123" | Número |
+| `data.status` | "confirmed" | Código do status |
+
+### 3.8 Exemplo completo (React Native)
+
+```js
+// services/notifications.js
+import messaging from '@react-native-firebase/messaging';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const API = 'http://localhost:3000/api';
+
+export async function setupFcm(jwt) {
+  const authStatus = await messaging().requestPermission();
+  if (authStatus !== messaging.AuthorizationStatus.AUTHORIZED &&
+      authStatus !== messaging.AuthorizationStatus.PROVISIONAL) return;
+
+  const token = await messaging().getToken();
+  await AsyncStorage.setItem('@fcm_token', token);
+
+  // Registar no backend
+  await fetch(`${API}/profile/fcm-token`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fcmToken: token }),
+  });
+
+  // Foreground
+  messaging().onMessage(msg => {
+    Alert.alert(msg.notification.title, msg.notification.body);
+  });
+
+  // Background → user toca na notificação
+  messaging().onNotificationOpenedApp(msg => {
+    navigate('OrderDetails', { orderId: msg.data.orderId });
+  });
+
+  // App aberto a partir do zero pela notificação
+  const initial = await messaging().getInitialNotification();
+  if (initial) {
+    navigate('OrderDetails', { orderId: initial.data.orderId });
+  }
+}
+```
+
+### 3.9 Exemplo completo (Web)
+
+```html
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyDrWwBbSF5rTNq0b3LNAZNe3tunwOglns4",
+    authDomain: "app-casacheia.firebaseapp.com",
+    projectId: "app-casacheia",
+    storageBucket: "app-casacheia.firebasestorage.app",
+    messagingSenderId: "963306116249",
+    appId: "1:963306116249:web:2f48382b5a995ee8d19408",
+    measurementId: "G-2ZR9NKHWPK"
+  });
+
+  const messaging = firebase.messaging();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js');
+  }
+
+  async function setupFcm(jwt) {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+
+    const token = await messaging.getToken({
+      vapidKey: "BM0UGU2yMAeYy3u5wBRf4Cy1blWFaAe1IiupjAaIOJADeyxScjJTYIoTuGiwjxbJrUBMvt3nJHQo0qBtC0NfmNU"
+    });
+
+    await fetch('/api/profile/fcm-token', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fcmToken: token }),
+    });
+
+    messaging.onMessage(payload => {
+      showToast(payload.notification.title, payload.notification.body);
+    });
+  }
+</script>
+```
+
+---
+
+## 4. Serviço Socket.io — Admin Dashboard
+
+### 4.1 Como funciona
+
+O Socket.io é usado **exclusivamente para o dashboard do admin**. O servidor:
+
+1. Verifica se o JWT do handshake é de um admin válido
+2. Coloca o socket na sala `"admin-room"`
+3. Quando algo acontece (novo pedido, status update), emite o evento para a sala
+4. Todos os admins conectados recebem em tempo real
+
+### 4.2 Passo 1 — Conectar ao Socket.io
+
+Após o login do admin, conecta passando o JWT no `auth.token`:
+
+```js
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3000", {
+  auth: { token: "<JWT_DO_ADMIN>" },
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 2000,
+});
+```
+
+### 4.3 Passo 2 — Ouvir os eventos
+
+| Evento | Quando ocorre | Dados |
+|--------|--------------|-------|
+| `new_order` | Cliente finaliza checkout | `{ orderId, orderNumber, total, contactName, title, body, createdAt }` |
+| `status_update` | Admin altera status | `{ orderId, orderNumber, status, title, body, createdAt }` |
+
+```js
+socket.on("new_order", (data) => {
+  // Mostrar pop-up: "Novo Pedido ORD-123 — João (1.500 Kz)"
+});
+
+socket.on("status_update", (data) => {
+  // Atualizar lista de pedidos + toast
+});
+```
+
+### 4.4 Passo 3 — Buscar notificações perdidas via REST
+
+Se o admin estava offline, as notificações ficam no MongoDB. Ao entrar no dashboard:
+
+1. Fazer `GET /api/profile/notifications` — retorna as não lidas
+2. Mostrar no dashboard
+3. Quando o admin visualizar, fazer `PATCH /api/profile/notifications/:id/read`
+
+### 4.5 Exemplo completo (React)
+
+```js
+// services/socket.js
+import { io } from "socket.io-client";
+
+let socket = null;
+
+export function connectSocket(jwt) {
+  if (socket?.connected) return socket;
+
+  socket = io("http://localhost:3000", {
+    auth: { token: jwt },
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 2000,
+  });
+
+  socket.on("connect", () => console.log("Socket conectado:", socket.id));
+  socket.on("connect_error", (err) => console.error("Erro socket:", err.message));
+
+  return socket;
+}
+
+export function disconnectSocket() {
+  socket?.disconnect();
+  socket = null;
+}
+```
+
+```jsx
+// hooks/useAdminNotifications.js
+import { useEffect, useState } from "react";
+import { connectSocket, disconnectSocket } from "../services/socket";
+
+export function useAdminNotifications(jwt) {
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    if (!jwt) return;
+
+    // Buscar notificações perdidas
+    fetch("/api/profile/notifications", {
+      headers: { Authorization: `Bearer ${jwt}` },
+    }).then(r => r.json()).then(d => {
+      if (d.status) setNotifications(d.data);
+    });
+
+    const socket = connectSocket(jwt);
+    socket.on("connect", () => setConnected(true));
+    socket.on("disconnect", () => setConnected(false));
+    socket.on("new_order", (data) => {
+      setNotifications(prev => [data, ...prev]);
+      showToast(`Novo Pedido: ${data.orderNumber}`, data.contactName);
+    });
+    socket.on("status_update", (data) => {
+      setNotifications(prev => [data, ...prev]);
+    });
+
+    return () => disconnectSocket();
+  }, [jwt]);
+
+  return { connected };
+}
+```
+
+---
+
+## 5. API REST de Notificações
+
+### 5.1 GET /api/profile/notifications
+
+Lista notificações **não lidas** do user autenticado (máx 50, ordenadas por data).
+
+```
+GET /api/profile/notifications
+Authorization: Bearer <JWT>
+```
+
+Resposta:
+```json
+{
+  "status": true,
+  "data": [
+    {
+      "_id": "60f...",
+      "user": "60f...",
+      "type": "new_order",
+      "title": "Novo Pedido",
+      "body": "Pedido ORD-123 — João",
+      "data": { "orderId": "...", "orderNumber": "ORD-123", "total": 1500 },
+      "read": false,
+      "createdAt": "2025-01-15T14:30:00.000Z"
+    }
+  ]
+}
+```
+
+### 5.2 PATCH /api/profile/notifications/:id/read
+
+Marca notificação como lida.
+
+```
+PATCH /api/profile/notifications/60f.../read
+Authorization: Bearer <JWT>
+```
+
+Resposta:
+```json
+{ "status": true, "message": "Notificação marcada como lida.", "data": { ... } }
+```
+
+### 5.3 PATCH /api/profile/fcm-token
+
+Regista token FCM do dispositivo (documentado no [Passo 2](#33-passo-2--registar-o-token-fcm-no-backend)).
+
+---
+
+## 6. Documentação Swagger
+
+A documentação interativa da API está disponível em:
+
+```
+http://localhost:3000/api-docs
+```
+
+Lá encontras documentação para todos os endpoints, incluindo:
+
+- **Notificações**
+  - `GET /api/profile/notifications` — listar não lidas
+  - `PATCH /api/profile/notifications/{id}/read` — marcar como lida
+- **Autenticação**
+  - `PATCH /api/profile/fcm-token` — registar token FCM
+
+Os schemas `Notification`, `NotificationsResponse`, `MarkAsReadResponse` e `FcmTokenInput` estão documentados no Swagger.
+
+---
+
+## 7. Mapeamento completo de eventos
+
+| Ação | Push FCM (cliente) | Socket.io (admin) | MongoDB in-app |
+|------|-------------------|-------------------|----------------|
+| Cliente faz checkout | ❌ | ✅ `new_order` | ✅ notificação criada p/ cada admin |
+| Admin cria produto | ✅ broadcast para todos | ❌ | ❌ |
+| Admin atualiza status | ✅ só para o dono do pedido | ✅ `status_update` | ✅ notificação criada p/ cada admin |
+| Cliente regista FCM token | — | — | ✅ token guardado no user |
+
+---
+
+## 8. Estrutura de arquivos do backend
+
+```
+server.js                                      ← Socket.io (admin-room)
+app/
+├── app.js                                     ← monta as rotas
+├── config/
+│   ├── firebase/firebase.js                   ← inicializa Firebase Admin SDK
+│   └── services/notificationService.js        ← 6 funções do core
+├── controllers/
+│   ├── authController.js                      ← updateFcmToken
+│   ├── notificationController.js              ← getUserNotifications, markAsRead
+│   ├── checkoutController.js                  ← notifyAdmins("new_order")
+│   ├── orderController.js                     ← sendPush + notifyAdmins("status_update")
+│   └── productController.js                   ← sendPushToAllUsers
+├── models/
+│   ├── userModel.js                           ← fcmTokens: [String]
+│   └── notification.js                        ← schema da notificação
+└── routes/
+    ├── authRoutes.js                          ← PATCH /profile/fcm-token
+    └── notificationRoutes.js                  ← GET/PATCH /profile/notifications
+
+testWeb/
+├── testFcmWeb.html                            ← gera token FCM para testes
+└── firebase-messaging-sw.js                   ← service worker para FCM web
+```
+
+---
+
+## 9. Ambiente de teste
+
+### 9.1 Testar FCM com página web
+
+Na pasta `testWeb/`:
+
+1. Abre `testWeb/testFcmWeb.html` num browser (serve com `npx serve testWeb`)
+2. Clica "Gerar Token" e aceita a permissão
+3. Copia o token gerado
+4. Regista e testa:
+
+```bash
+curl -X PATCH http://localhost:3000/api/profile/fcm-token \
+  -H "Authorization: Bearer <JWT>" \
+  -H "Content-Type: application/json" \
+  -d '{"fcmToken": "token_gerado"}'
+
+curl -X POST http://localhost:3000/api/products \
+  -H "Authorization: Bearer <JWT_ADMIN>" \
+  -F "name=Push Test" -F "price=1000" -F "category=<ID>" \
+  -F "partner=<ID>" -F "stock=10" -F "description=teste"
+```
+
+Deves receber a notificação no browser.
+
+### 9.2 Testar Socket.io
+
+Salva como `test-socket.mjs`:
+
+```js
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:3000", {
   auth: { token: "<JWT_DO_ADMIN>" }
 });
 
-socket.on("connect", () => {
-  console.log("Conectado ao Socket.io como admin");
-});
-
-socket.on("new_order", (data) => {
-  console.log("Evento new_order recebido:", data);
-});
-
-socket.on("status_update", (data) => {
-  console.log("Evento status_update recebido:", data);
-});
-
-socket.on("disconnect", (reason) => {
-  console.log("Desconectado:", reason);
-});
-
-// Manter o script rodando
-setTimeout(() => process.exit(0), 30000);
+socket.on("connect", () => console.log("✅ Conectado"));
+socket.on("new_order", d => console.log("📦 new_order:", JSON.stringify(d, null, 2)));
+socket.on("status_update", d => console.log("🔄 status_update:", JSON.stringify(d, null, 2)));
+setTimeout(() => process.exit(0), 60000);
 ```
 
 ```bash
-node test-socket.js
+node test-socket.mjs
 ```
 
-Depois, dispara um checkout ou uma atualização de status para ver os eventos chegando.
+Depois faz um checkout ou atualiza status noutro terminal.
 
-### 6.4 Testar SMS (Ombala)
-
-Para testar o SMS, basta fazer uma requisição de registro:
+### 9.3 Testar endpoints de notificação
 
 ```bash
-curl -X POST http://localhost:3000/api/register \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Teste SMS", "telefone": "923456789", "password": "senha123"}'
+curl http://localhost:3000/api/profile/notifications \
+  -H "Authorization: Bearer <JWT>"
+
+curl -X PATCH http://localhost:3000/api/profile/notifications/<ID>/read \
+  -H "Authorization: Bearer <JWT>"
 ```
 
-**Resposta esperada (200):**
-```json
-{ "status": true, "message": "Codigo de verificacao enviado com sucesso! por favor verifique seu telefone.", "telefone": "923456789" }
-```
-
-Se o SMS não chegar, verifica:
-- O `TOKEN_OMBALA` está correto no `.env`?
-- O `URL_OMBALA` está correto?
-- O número de telefone é angolano válido (9 dígitos)?
-- O console do servidor mostra erro da API Ombala?
-
-### 6.5 Verificar Firebase
-
-Para verificar se o Firebase está configurado corretamente:
+Ou executa o script automatizado:
 
 ```bash
-node -e "import('./app/config/firebase/firebase.js').then(m => console.log('Firebase OK:', m.app.name)).catch(e => console.error('Erro:', e.message))"
+node test-notifications.mjs
 ```
-
-**Resposta esperada:** `Firebase OK: [DEFAULT]`
-
-Se houver erro, verifica:
-- O `firebase-service-account.json` existe na raiz e tem conteúdo válido
-- A conta de serviço tem permissão "Firebase Cloud Messaging Admin"
-
----
-
-## 7. Problemas conhecidos e gaps
-
-### 7.1 Funcionalidades não implementadas (definidas no service mas sem rota)
-
-| Função | O que faz | Status |
-|--------|----------|--------|
-| `getUnreadNotifications(userId)` | Busca notificações não lidas do usuário | ❌ Sem rota REST |
-| `markAsRead(notificationId)` | Marca notificação como lida | ❌ Sem rota REST |
-| `saveInAppNotification(userId, type, title, body, data)` | Salva notificação in-app para um usuário específico | ❌ Sem uso |
-
-Sugestão: criar endpoints `GET /api/notifications` e `PATCH /api/notifications/:id/read` para o frontend consumir.
-
-### 7.2 Enum de tipos de notificação
-
-Agora corrigido — o schema `notification.js` inclui `['new_order', 'new_product', 'promotion', 'status_update']`.
-
-### 7.3 Rotas não montadas
-
-- `refreshToken`: a função existe no controller mas nenhuma rota a monta.
-
-### 7.4 Tokens FCM
-
-O `sendPush` é chamado individualmente por token em vez de usar multicast. Para usuários com vários dispositivos, são feitas N chamadas à API do FCM em vez de uma. Isto é ineficiente mas funcional.
-
-### 7.5 Dependências não utilizadas
-
-- `@supabase/supabase-js` está no `package.json` e configurado em `app/config/supabaseClient.js` mas não é usado em nenhum controller (seria para armazenamento de imagens em produção, mas o ImgBB é que está ativo).
-- O schema de `paymentMethodModel.js` existe mas também não tem rotas.

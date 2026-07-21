@@ -4,3 +4,5 @@
 ./docker-compose.yaml
 .explicacao.md
 .firebase-service-account.json
+.testWeb/
+.testFcm.js
