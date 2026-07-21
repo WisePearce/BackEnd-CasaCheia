@@ -1,42 +1,63 @@
-import redis from "redis";
-import dotenv from "dotenv";
+import { Redis as UpstashRedis } from "@upstash/redis"
+import { createClient } from "redis"
+import dotenv from "dotenv"
 
-dotenv.config();
+dotenv.config()
 
-const redisUrl = process.env.NODE_ENV === "production" ? process.env.REDIS_URL : process.env.REDIS_URL_DEV;
+let redisClient
 
-const redisClient = redis.createClient({
-  url: redisUrl,
-  socket: {
-    reconnectStrategy: (retries) => {
-      // Parar de tentar reconectar após a 1ª falha para evitar spam de erros
-      console.error(`Redis: falha ao conectar (tentativa ${retries}). A desistir.`);
-      return false;
+// Upstash (REST) — usa as variáveis UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  const upstash = new UpstashRedis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  })
+
+  // Adaptar a interface para ser compatível com os controllers existentes
+  redisClient = {
+    setEx: (key, seconds, value) => upstash.setex(key, seconds, value),
+    get: (key) => upstash.get(key),
+    del: (key) => upstash.del(key),
+    ttl: (key) => upstash.ttl(key),
+  }
+
+  console.log("Redis: Upstash REST API configurado")
+} else {
+  // Redis TCP padrão (desenvolvimento local)
+  const url = process.env.NODE_ENV === "production" ? process.env.REDIS_URL : process.env.REDIS_URL_DEV
+  const tcpClient = url ? createClient({ url, socket: { reconnectStrategy: () => false } }) : null
+
+  if (tcpClient) {
+    tcpClient.on("error", (err) => console.error("Redis Client Error:", err.message))
+    tcpClient.on("connect", () => console.log("Conectado ao Redis com sucesso!"))
+
+    // Adaptar interface
+    redisClient = {
+      setEx: (key, seconds, value) => tcpClient.setEx(key, seconds, value),
+      get: (key) => tcpClient.get(key),
+      del: (key) => tcpClient.del(key),
+      ttl: (key) => tcpClient.ttl(key),
     }
+
+    ;(async () => {
+      try {
+        if (!tcpClient.isOpen) await tcpClient.connect()
+      } catch (err) {
+        // Apenas log, app continua
+      }
+    })()
   }
-});
+}
 
-redisClient.on('error', (err) => {
-  // Apenas log se for depois de já termos desistido de reconectar
-  if (redisUrl) {
-    console.error('Redis Client Error:', err.message);
+// Fallback: se não houver Redis configurado, retorna erros nas operações
+if (!redisClient) {
+  console.warn("Redis: NENHUM servidor configurado. SMS de verificação não funcionará.")
+  redisClient = {
+    setEx: () => { throw new Error("Redis não configurado") },
+    get: () => { throw new Error("Redis não configurado") },
+    del: () => { throw new Error("Redis não configurado") },
+    ttl: () => { throw new Error("Redis não configurado") },
   }
-});
+}
 
-redisClient.on('connect', () => {
-  console.log('Conectado ao Redis com sucesso!');
-});
-
-// Conectar ao Redis (falha silenciosa — app funciona sem Redis)
-(async () => {
-  if (!redisUrl) return;
-  try {
-    if (!redisClient.isOpen) {
-      await redisClient.connect();
-    }
-  } catch (err) {
-    // App continua funcionando sem Redis (apenas SMS de verificação)
-  }
-})();
-
-export default redisClient;
+export default redisClient
