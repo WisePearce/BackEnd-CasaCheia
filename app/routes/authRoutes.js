@@ -114,6 +114,13 @@
  *       properties:
  *         fcmToken:
  *           type: string
+ *           description: |
+ *             Token FCM gerado pelo Firebase no dispositivo do cliente.
+ *             O token identifica o dispositivo para onde as notificações push serão enviadas.
+ *             Como obter:
+ *               React Native: messaging().getToken()
+ *               Web: messaging.getToken({ vapidKey: "BM0UGU2yMAe..." })
+ *             Deve ser chamado sempre após o login do utilizador.
  *     LogoutInput:
  *       type: object
  *       required: [token]
@@ -299,7 +306,28 @@
  *   patch:
  *     tags: [Autenticação]
  *     summary: Registrar token FCM para notificações push
- *     description: Associa um token FCM ao dispositivo do usuário para receber notificações push
+ *     description: |
+ *       Regista o token do dispositivo do cliente no backend para que ele possa receber notificações push.
+ *
+ *       O token FCM é gerado pelo Firebase SDK no dispositivo (Android, iOS ou Web)
+ *       e identifica de forma única aquele dispositivo. Sem este passo, o cliente
+ *       NÃO recebe notificações push (novo produto, atualização de pedido, etc).
+ *
+ *       Fluxo completo:
+ *       1. Utilizador faz login → obtém JWT
+ *       2. No dispositivo, usar Firebase SDK para gerar o token:
+ *          - React Native: messaging().getToken()
+ *          - Web: messaging.getToken({ vapidKey: "BM0UGU2yMAeYy3u5wBRf4Cy1blWFaAe1IiupjAaIOJADeyxScjJTYIoTuGiwjxbJrUBMvt3nJHQo0qBtC0NfmNU" })
+ *       3. Enviar o token para este endpoint (PATCH /api/profile/fcm-token)
+ *       4. O backend guarda o token no array fcmTokens do utilizador no MongoDB
+ *       5. Quando houver um novo produto ou atualização de pedido, o backend
+ *          envia push para este dispositivo usando o token registado
+ *
+ *       Notas:
+ *       - Cada dispositivo gera um token diferente
+ *       - Um utilizador pode ter N tokens (um por dispositivo)
+ *       - Deve ser chamado sempre após o login
+ *       - Tokens inválidos (app desinstalado) são removidos automaticamente
  *     security:
  *       - bearerAuth: []
  *     requestBody:
