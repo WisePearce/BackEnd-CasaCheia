@@ -76,14 +76,14 @@ const telefonePasswordValidation = Joi.object({
 
 const productValidation = Joi.object({
   name: Joi.string()
-    .min(4)
+    .min(5)
     .max(50)
     .required()
     .messages({
       "string.base": `"name" deve ser um texto`,
       "string.empty": `"campo nome não pode ser vazio`,
-      "string.min": `"name" deve ter pelo menos {4} caracteres`,
-      "string.max": `"name" deve ter no máximo {5} caracteres`,
+      "string.min": `"name" deve ter pelo menos {{#limit}} caracteres`,
+      "string.max": `"name" deve ter no máximo {{#limit}} caracteres`,
       "any.required": `"name" é obrigatório`
     }),
 
@@ -112,10 +112,11 @@ const productValidation = Joi.object({
   partner: Joi.string()
     .max(24)
     .min(24)
-    .optional()
+    .required()
     .empty()
     .messages({
       "string.base": "informe o id do partner (parceiro)",
+      "any.required": "partner é um campo obrigatório",
       "string.empty": "campo partner deve ser preenchido",
       "string.min": "id do partner deve ter 24 caracteres",
       "string.max": "id do partner deve ter 24 caracteres",
