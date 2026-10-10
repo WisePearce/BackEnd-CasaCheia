@@ -259,7 +259,7 @@ const updateProduct = async (req, res) => {
       data: product,
     });
   } catch (error) {
-    console.error("[updateProduct]", error);
+    console.error("[updateProduct] error:", error); console.error("[updateProduct] req.files:", req.files?.length, "req.body keys:", Object.keys(req.body||{}));
     if (error.code === 11000) {
       const campo = Object.keys(error.keyPattern || {})[0] || "campo";
       return res.status(400).json({
