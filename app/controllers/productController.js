@@ -220,8 +220,30 @@ const updateProduct = async (req, res) => {
     // Guardar preço antigo antes de atualizar (para detectar promoção)
     const oldPrice = parseFloat(product.price.toString());
 
-    const images = await getImages(req.files);
-    if (images) product.image = images;
+    // Tratar imagens: manter existentes, substituir por novas ou manter atuais
+    let existingList = [];
+    if (req.body.existingImages) {
+      const existing = req.body.existingImages;
+      if (typeof existing === "string") {
+        try {
+          existingList = JSON.parse(existing);
+        } catch {
+          existingList = [existing].filter(Boolean);
+        }
+      } else if (Array.isArray(existing)) {
+        existingList = existing.filter(Boolean);
+      }
+    }
+
+    const newImages = await getImages(req.files);
+    if (newImages && newImages.length > 0) {
+      // Se vierem novas imagens, substitui completamente
+      product.image = newImages;
+    } else if (existingList.length > 0) {
+      // Mantém apenas as imagens que o frontend enviou como existentes
+      product.image = existingList;
+    }
+    // Se não vier nem novas imagens nem existingImages, NÃO altera product.image;
 
     await product.save();
 

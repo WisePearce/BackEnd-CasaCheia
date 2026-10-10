@@ -58,7 +58,11 @@ const productUpdateValidation = Joi.object({
     .messages({
       "string.base": "description deve ser um texto",
       "string.empty": "campo descrição deve ser preenchido "
-    })
+    }),
+
+  existingImages: Joi.alternatives()
+    .try(Joi.array().items(Joi.string()), Joi.string())
+    .optional()
 });
 
 export default productUpdateValidation
