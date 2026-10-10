@@ -223,6 +223,7 @@ const getAllOrders = async (req, res) => {
               phoneNumber: "$shippingAddress.phoneNumber",
               street: "$shippingAddress.street",
               city: "$shippingAddress.city",
+              coordinates: "$shippingAddress.coordinates",
             },
             produtos: 1,
             totalItens: { $size: "$produtos" },
