@@ -64,6 +64,17 @@ const createProduct = async (req, res) => {
       data: newProduct,
     });
   } catch (error) {
+    console.error("[createProduct]", error);
+    if (error.code === 11000) {
+      const campo = Object.keys(error.keyPattern || {})[0] || "campo";
+      return res.status(400).json({
+        status: false,
+        message: `Já existe um produto com este ${campo}.`,
+      });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ status: false, message: error.message });
+    }
     return res.status(500).json({
       status: false,
       message: "Erro no servidor. Não foi possível cadastrar o produto.",
@@ -181,11 +192,14 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ status: false, message: "Produto não encontrado." });
     }
 
+    let value = {};
+
     if (hasBody) {
-      const { error, value } = productUpdateValidation.validate(req.body);
+      const { error, value: validated } = productUpdateValidation.validate(req.body);
       if (error) {
         return res.status(400).json({ status: false, message: error.details[0].message });
       }
+      value = validated;
 
       if (value.partner && !mongoose.Types.ObjectId.isValid(value.partner)) {
         return res.status(400).json({ status: false, message: "ID do parceiro inválido." });
@@ -204,7 +218,7 @@ const updateProduct = async (req, res) => {
     }
 
     // Guardar preço antigo antes de atualizar (para detectar promoção)
-    const oldPrice = product.price;
+    const oldPrice = parseFloat(product.price.toString());
 
     const images = await getImages(req.files);
     if (images) product.image = images;
@@ -223,6 +237,17 @@ const updateProduct = async (req, res) => {
       data: product,
     });
   } catch (error) {
+    console.error("[updateProduct]", error);
+    if (error.code === 11000) {
+      const campo = Object.keys(error.keyPattern || {})[0] || "campo";
+      return res.status(400).json({
+        status: false,
+        message: `Já existe um produto com este ${campo}.`,
+      });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ status: false, message: error.message });
+    }
     return res.status(500).json({
       status: false,
       message: "Erro no servidor. Não foi possível atualizar o produto.",
@@ -245,6 +270,7 @@ const deleteProduct = async (req, res) => {
 
     return res.status(200).json({ status: true, message: "Produto eliminado com sucesso!" });
   } catch (error) {
+    console.error("[deleteProduct]", error);
     return res.status(500).json({ status: false, message: "Erro ao eliminar produto." });
   }
 };
