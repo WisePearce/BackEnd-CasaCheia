@@ -272,7 +272,7 @@ const updateProduct = async (req, res) => {
     }
     return res.status(500).json({
       status: false,
-      message: "Erro no servidor. Não foi possível atualizar o produto.",
+      message: error.message || "Erro no servidor. Não foi possível atualizar o produto.",
     });
   }
 };
