@@ -7,3 +7,4 @@
 .testWeb/
 .testFcm.js
 .postman
+.env
