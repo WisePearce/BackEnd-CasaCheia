@@ -1,0 +1,29 @@
+$kind: http-example
+name: 400 — código inválido ou expirado
+request:
+  method: POST
+  url: '{{base_url}}/register/verify'
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "telefone": "923456789",
+        "code": "000000"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    - key: Content-Type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "status": false,
+        "message": "Código de verificação inválido."
+      }
+order: 2000

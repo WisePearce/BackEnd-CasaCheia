@@ -1,0 +1,31 @@
+$kind: http-example
+name: 200 — código enviado
+request:
+  method: POST
+  url: '{{base_url}}/register'
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "name": "Maria Teste",
+        "telefone": "923456789",
+        "password": "SenhaForte123"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    - key: Content-Type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "status": true,
+        "message": "Codigo de verificacao enviado com sucesso! por favor verifique seu telefone.",
+        "telefone": "923456789"
+      }
+order: 1000

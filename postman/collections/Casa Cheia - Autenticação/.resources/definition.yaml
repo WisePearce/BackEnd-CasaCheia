@@ -1,0 +1,13 @@
+$kind: collection
+name: Casa Cheia - Autenticação
+description: |
+  Fluxo de registo de utilizador em duas etapas:
+
+  1. **Register** — valida os dados, gera um código de 6 dígitos, guarda o hash
+     no Redis (`new-user: <telefone>`, TTL 10 min) e envia o código por SMS.
+  2. **Verify** — recebe `telefone` + `code`, valida o hash (máx. 3 tentativas)
+     e cria a conta devolvendo JWT + refresh token.
+
+  O `code` só existe no SMS: copie-o para a variável de ambiente
+  `verification_code` antes de correr o pedido de verificação.
+order: 1000

@@ -57,6 +57,7 @@ const signup = async (req, resp) => {
 
         //enviar o codigo da sms de 6 digitos para o usuario
         const send = await sendMessages(`Seu código de abertura da conta é: ${codeToSend}`, 'Casa Cheia', telefone);
+        console.log(send);
 
 
         //enviar resposta para o cliente
@@ -324,6 +325,7 @@ const verifyCode = async (req, resp) => {
                 message: "Telefone e código são obrigatórios."
             });
         }
+        console.log(req.body);
 
         //validar telefone
         const { error, value } = telefoneValidation.validate({telefone});
@@ -335,13 +337,14 @@ const verifyCode = async (req, resp) => {
         }
         //recuperar os dados do redis
         const redisData = await redisClient.get(`new-user: ${telefone}`);
+        console.log("Recupeando os dados: ", redisData)
         if (!redisData) {
             return resp.status(400).json({
                 status: false,
                 message: "Código expirado ou inválido | verifique o numero de telefone. Por favor, registre-se novamente."
             });
         }
-        const parseData = JSON.parse(redisData);
+        const parseData = typeof redisData === "string" ? JSON.parse(redisData) : redisData;
 
         //verficar o numero de tentativas
         if (parseData.attempts >= 3) {
@@ -378,7 +381,7 @@ const verifyCode = async (req, resp) => {
                 role: user.role
             },
             process.env.JWT_KEY,
-            { expiresIn: '4h' }
+            { expiresIn: '31d' }
         )
 
         //gerar o refresh token para o cliente (user) e salvar no banco de dados
@@ -412,6 +415,7 @@ const verifyCode = async (req, resp) => {
             "token": token
         })
     } catch (error) {
+      console.log(error)
         resp.status(500).json({
             status: false,
             message: "Erro interno no servidor"

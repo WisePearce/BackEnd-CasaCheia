@@ -42,8 +42,10 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
     ;(async () => {
       try {
         if (!tcpClient.isOpen) await tcpClient.connect()
+          console.log("redis on")
       } catch (err) {
         // Apenas log, app continua
+        console.log(err)
       }
     })()
   }

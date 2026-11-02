@@ -1,0 +1,43 @@
+$kind: http-request
+name: Register — enviar código SMS
+method: POST
+url: '{{base_url}}/register'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "{{user_name}}",
+      "telefone": "{{user_phone}}",
+      "password": "{{user_password}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 — código de verificação enviado', () => {
+        pm.response.to.have.status(200);
+      });
+
+      const body = pm.response.json();
+
+      pm.test('resposta com status true', () => {
+        pm.expect(body.status).to.eql(true);
+      });
+
+      pm.test('mensagem de confirmação enviada', () => {
+        pm.expect(body.message).to.be.a('string').and.to.include('Codigo de verificacao');
+      });
+
+      pm.test('telefone devolvido é o mesmo do pedido', () => {
+        pm.expect(body.telefone).to.eql(pm.environment.get('user_phone'));
+      });
+
+      // Guarda o telefone para o pedido de verificação seguinte, garantindo
+      // que ambos usam exatamente o mesmo número.
+      if (pm.response.code === 200) {
+        pm.environment.set('verify_phone', body.telefone);
+      }
+examples: './.resources/register.resources/examples'

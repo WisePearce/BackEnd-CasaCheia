@@ -1,0 +1,37 @@
+name: Casa Cheia - Local
+values:
+  - key: base_url
+    value: 'http://localhost:5000/api'
+    enabled: true
+    type: default
+    description: URL base da API (muda para o host de staging/produção quando necessário).
+  - key: user_name
+    value: 'Maria Teste'
+    enabled: true
+    type: default
+    description: Nome usado no pedido de registo (mínimo 5 caracteres).
+  - key: user_phone
+    value: '923456789'
+    enabled: true
+    type: default
+    description: Telefone com 9 dígitos. Tem de estar livre (não registado) e receber SMS.
+  - key: user_password
+    value: 'SenhaForte123'
+    enabled: true
+    type: default
+    description: Password de teste (mínimo 8 caracteres). Não é uma credencial real.
+  - key: verify_phone
+    value: ''
+    enabled: true
+    type: default
+    description: Preenchido automaticamente pelo pedido Register; usado pelo Verify.
+  - key: verification_code
+    value: ''
+    enabled: true
+    type: secret
+    description: Código de 6 dígitos recebido por SMS. Preencher manualmente antes do Verify.
+  - key: auth_token
+    value: ''
+    enabled: true
+    type: secret
+    description: JWT devolvido pelo Verify, guardado automaticamente para pedidos autenticados.

@@ -1,0 +1,30 @@
+$kind: http-example
+name: 422 — telefone já registado
+request:
+  method: POST
+  url: '{{base_url}}/register'
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "name": "Maria Teste",
+        "telefone": "923456789",
+        "password": "SenhaForte123"
+      }
+response:
+  statusCode: 422
+  statusText: Unprocessable Entity
+  headers:
+    - key: Content-Type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "status": false,
+        "message": "Use outro numero de telefone porfavor!"
+      }
+order: 3000

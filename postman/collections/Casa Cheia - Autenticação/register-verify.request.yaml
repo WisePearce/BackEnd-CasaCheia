@@ -1,0 +1,48 @@
+$kind: http-request
+name: Verify — confirmar código SMS
+method: POST
+url: '{{base_url}}/register/verify'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "telefone": "{{verify_phone}}",
+      "code": "{{verification_code}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 — conta criada e autenticada', () => {
+        pm.response.to.have.status(201);
+      });
+
+      const body = pm.response.json();
+
+      pm.test('resposta com status true', () => {
+        pm.expect(body.status).to.eql(true);
+      });
+
+      pm.test('utilizador criado devolve id e dados', () => {
+        pm.expect(body.id).to.be.a('string').and.not.empty;
+        pm.expect(body.name).to.be.a('string').and.not.empty;
+        pm.expect(body.telefone).to.eql(pm.environment.get('verify_phone'));
+        pm.expect(body.role).to.eql('user');
+      });
+
+      pm.test('JWT devolvido', () => {
+        pm.expect(body.token).to.be.a('string').and.not.empty;
+      });
+
+      pm.test('password nunca é devolvida', () => {
+        pm.expect(body).to.not.have.property('password');
+      });
+
+      // Guarda o JWT para pedidos autenticados noutras coleções.
+      if (pm.response.code === 201) {
+        pm.environment.set('auth_token', body.token);
+      }
+examples: './.resources/register-verify.resources/examples'

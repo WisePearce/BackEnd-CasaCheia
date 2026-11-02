@@ -73,3 +73,7 @@ npm start          # node server.js
 - Socket.io (in deps, no server setup visible) — may be partially configured
 - Argon2 — actual password hasher (not bcrypt, despite bcrypt in package.json)
 - Axios — used for ImgBB and Ombala API calls
+
+<API_TASKS>
+Before responding to any non-trivial API engineering task — designing, implementing, mocking, testing, monitoring, documenting, or deploying an API or Postman Flow — read `postman/skills/api-engineer/SKILL.md` and follow it. It is the default entry point for API work in this repository. Pure questions and trivial one-line edits do not need it.
+</API_TASKS>

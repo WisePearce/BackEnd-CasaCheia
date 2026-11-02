@@ -1,0 +1,35 @@
+$kind: http-example
+name: 201 — conta criada e autenticada
+request:
+  method: POST
+  url: '{{base_url}}/register/verify'
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "telefone": "923456789",
+        "code": "123456"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    - key: Content-Type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "status": true,
+        "message": "usuario criado com sucesso e autenticado com sucesso!",
+        "id": "673f1d2c9a1b4c0012345678",
+        "name": "Maria Teste",
+        "telefone": "923456789",
+        "role": "user",
+        "createdAt": "2026-11-02T10:15:30.000Z",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3M2YxZDJjOWExYjRjMDAxMjM0NTY3OCIsInRlbGVmb25lIjoiOTIzNDU2Nzg5Iiwicm9sZSI6InVzZXIiLCJpYXQiOjE3NjIwNzUzMzAsImV4cCI6MTc2MjA4OTczMH0.assinatura-exemplo"
+      }
+order: 1000

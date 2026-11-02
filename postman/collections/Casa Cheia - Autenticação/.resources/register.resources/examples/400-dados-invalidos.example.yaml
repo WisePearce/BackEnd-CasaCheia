@@ -1,0 +1,30 @@
+$kind: http-example
+name: 400 — dados inválidos
+request:
+  method: POST
+  url: '{{base_url}}/register'
+  headers:
+    - key: Content-Type
+      value: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "name": "Ana",
+        "telefone": "123",
+        "password": "123"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    - key: Content-Type
+      value: application/json; charset=utf-8
+  body:
+    type: json
+    content: |-
+      {
+        "status": false,
+        "message": "O nome deve ter no mínimo 5 caracteres."
+      }
+order: 2000

@@ -250,7 +250,7 @@ const verifyCode = async (req, res) => {
         if (!isCodeValid) {
             parseData.attempts += 1;
             //atualizar o numero de tentativas no redis
-            await redisClient.setEx(`new-user: ${telefone}`, 600, JSON.stringify(parseData));
+            await redisClient.setEx(`telefone: ${telefone}`, 600, JSON.stringify(parseData));
             return res.status(400).json({
                 status: false,
                 message: "Código de verificação inválido."
